@@ -1,4 +1,5 @@
 import type { ChatCompletionRequest, ChatMessage } from './types.js';
+import { ensureUsage, toAnthropicUsage } from './usage.js';
 
 export interface AnthropicTextBlock {
   type: 'text';
@@ -229,7 +230,10 @@ export function toAnthropicResponse(
   const firstChoice = choices[0] ?? {};
   const message = (firstChoice.message as Record<string, unknown>) ?? {};
   const contentText = String(message.content ?? '');
-  const usage = (openAIResponse.usage as Record<string, number>) ?? {};
+  const normalizedUsage = ensureUsage(openAIResponse.usage, {
+    promptText: JSON.stringify((openAIResponse.messages as unknown[]) ?? [message]),
+    completionText: contentText,
+  });
 
   const toolCallsRaw = Array.isArray(message.tool_calls)
     ? (message.tool_calls as Array<Record<string, unknown>>)
@@ -271,10 +275,7 @@ export function toAnthropicResponse(
     content,
     model: modelId,
     stop_reason: stopReason,
-    usage: {
-      input_tokens: usage.prompt_tokens ?? 0,
-      output_tokens: usage.completion_tokens ?? 0,
-    },
+    usage: toAnthropicUsage(normalizedUsage),
   };
 }
 
@@ -292,7 +293,6 @@ export function anthropicStreamStart(modelId: string): string {
       content: [],
       model: modelId,
       stop_reason: null,
-      usage: { input_tokens: 0, output_tokens: 0 },
     },
   };
   return sseEvent(event);
@@ -404,7 +404,6 @@ export function createAnthropicStreamTransformer() {
       out += sseEvent({
         type: 'message_delta',
         delta: { stop_reason: stopReason, stop_sequence: null },
-        usage: { output_tokens: 0 },
       });
       out += sseEvent({ type: 'message_stop' });
 

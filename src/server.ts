@@ -10,6 +10,7 @@ import {
   toAnthropicResponse,
   type AnthropicRequest,
 } from './anthropic-bridge.js';
+import { normalizeOpenAIResponseUsage } from './usage.js';
 
 // Configure HTTP proxy for all fetch() calls if HTTP_PROXY is set
 try {
@@ -290,7 +291,14 @@ const server = http.createServer(async (req, res) => {
         }
         res.end();
       } else {
-        const body = await response.text();
+        const rawBody = await response.text();
+        const parsedBody = JSON.parse(rawBody) as Record<string, unknown>;
+        const completionText = String(
+          ((parsedBody.choices as Array<Record<string, unknown>> | undefined)?.[0]?.message as Record<string, unknown> | undefined)?.content ?? ''
+        );
+        const promptText = JSON.stringify(request.messages ?? []);
+        const normalizedBody = normalizeOpenAIResponseUsage(parsedBody, promptText, completionText);
+        const body = JSON.stringify(normalizedBody);
         res.setHeader('Content-Length', Buffer.byteLength(body));
         res.writeHead(response.status);
         res.end(body);

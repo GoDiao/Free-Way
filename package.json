@@ -7,7 +7,8 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "test:usage": "npm run build && node scripts/usage-regression.mjs"
   },
   "keywords": [
     "llm",

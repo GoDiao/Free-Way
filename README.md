@@ -1,12 +1,12 @@
 <p align="center">
-  <img src="Assets/Head.png" alt="Freeway cover" width="880" />
+  <img src="Assets/Head.png" alt="Freeway header" width="960" />
 </p>
 
 <h1 align="center">Freeway</h1>
 
 <p align="center">
-  OpenAI-compatible gateway for free-tier LLM providers, with a built-in web console,
-  health checks, dynamic model sync, and Anthropic-compatible bridging.
+  A local multi-provider LLM gateway with OpenAI-compatible and Anthropic-compatible APIs,
+  a built-in web console, provider health checks, dynamic model sync, and runtime key management.
 </p>
 
 <p align="center">
@@ -15,46 +15,68 @@
   <a href="./contribution.md">贡献指南 (中文)</a>
 </p>
 
-## Overview
+<p align="center">
+  <strong>One local endpoint.</strong>
+  <strong>Many free-capable providers.</strong>
+  <strong>One operational console.</strong>
+</p>
 
-Freeway is a TypeScript/Node.js local gateway that unifies multiple free LLM providers behind a single API surface.
+## Why Freeway
 
-It provides:
-- OpenAI-compatible endpoints (`/v1/chat/completions`, `/v1/models`)
-- Anthropic-compatible endpoint (`/v1/messages`)
-- Provider health checks and latency/status telemetry
-- Provider/model catalog in a local web console
-- Runtime key management with persistent local storage
-- Dynamic model sync with cache fallback
+Freeway lets you put a single local gateway in front of multiple free or low-friction LLM providers and expose them through a cleaner, more predictable API surface.
 
-## Key Features
+It is designed for day-to-day use with coding agents, scripts, local tools, and experimentation workflows where you want:
 
-- **Single endpoint, multi-provider routing**
-  - Route the same model across multiple providers.
-  - Force provider with prefixed model IDs like `groq/llama-3.3-70b`.
-- **Web console for operations**
-  - Provider status, filters, test actions, model browser, API key management, and request testing.
-- **Anthropic bridge**
-  - Convert Anthropic Messages API requests into OpenAI-style requests and map responses back.
-- **Safe local persistence**
-  - Keys saved to `.freeway/config.json` (local only, outside source tree logic).
-- **Startup model cache + background refresh**
-  - Loads cached models fast on boot, then syncs providers in background.
+- one base URL instead of switching provider endpoints
+- one place to manage provider keys and health status
+- OpenAI-compatible chat completions and model listing
+- Anthropic-compatible messages bridging
+- a local control panel for routing, testing, and observability
+
+## Highlights
+
+- **Unified local gateway**
+  - Serve multiple providers behind one local service at `http://localhost:8787`.
+  - Route by canonical model name or force a provider with `provider/model` syntax.
+
+- **OpenAI + Anthropic compatibility**
+  - OpenAI-compatible endpoints: `/v1/chat/completions`, `/v1/models`
+  - Anthropic-compatible endpoint: `/v1/messages`
+  - Anthropic requests are bridged into OpenAI-style requests internally.
+
+- **Usage normalization at the gateway layer**
+  - Non-stream OpenAI-compatible responses return stable `usage` fields.
+  - Non-stream Anthropic-compatible responses return stable `usage.input_tokens` / `usage.output_tokens`.
+  - Anthropic streaming avoids misleading placeholder zero-usage payloads.
+
+- **Built-in web console**
+  - Browse providers and models
+  - Check provider health and latency
+  - Configure runtime API keys
+  - Refresh model catalogs
+  - Test requests locally
+
+- **Operationally practical defaults**
+  - Cached model lists on boot
+  - Background model refresh
+  - Local key persistence
+  - Optional gateway auth via `FREEWAY_API_KEY`
+  - Optional outbound proxy via `HTTP_PROXY`
 
 ## Supported Providers
 
-Currently configured in `src/providers/index.ts`:
+Currently wired through `src/providers/index.ts`:
 
 `openrouter`, `groq`, `github`, `cloudflare`, `siliconflow`, `cerebras`, `mistral`, `cohere`, `nvidia`, `llm7`, `kilo`, `zhipu`, `opencode`
 
 ## Quick Start
 
-### 1) Prerequisites
+### 1. Prerequisites
 
 - Node.js 18+
 - npm
 
-### 2) Install and run
+### 2. Install and launch
 
 ```bash
 npm install
@@ -62,19 +84,21 @@ npm run build
 npm start
 ```
 
-Server default: `http://localhost:8787`
+Default server address:
 
-### 3) Open the console
+- `http://localhost:8787`
+
+### 3. Open the console
 
 Visit:
 
 - `http://localhost:8787/`
 
-Then set provider keys in **API Keys** tab, or pass keys via environment variables.
+Then configure provider keys in the **API Keys** tab, or provide them with environment variables.
 
 ## Configuration
 
-### API key sources and precedence
+### API key precedence
 
 Effective key precedence is:
 
@@ -99,11 +123,11 @@ Effective key precedence is:
 | `NVIDIA_API_KEY` | NVIDIA NIM key |
 | `LLM7_API_KEY` | LLM7 key |
 | `KILO_API_KEY` | Kilo key |
-| `ZHIPU_API_KEY` | Zhipu/BigModel key |
+| `ZHIPU_API_KEY` | Zhipu / BigModel key |
 | `OPENCODE_API_KEY` | OpenCode key |
 | `HTTP_PROXY` | Optional global HTTP proxy for outbound provider calls |
 
-## API Usage
+## API Examples
 
 ### OpenAI-compatible chat completion
 
@@ -118,7 +142,7 @@ curl http://localhost:8787/v1/chat/completions \
   }'
 ```
 
-### Force a provider
+### Force a provider explicitly
 
 ```json
 {
@@ -126,7 +150,7 @@ curl http://localhost:8787/v1/chat/completions \
 }
 ```
 
-### Anthropic-compatible messages endpoint
+### Anthropic-compatible messages request
 
 ```bash
 curl http://localhost:8787/v1/messages \
@@ -139,17 +163,25 @@ curl http://localhost:8787/v1/messages \
   }'
 ```
 
+### Claude-style local base URL usage
+
+For Anthropic-compatible clients that let you override the base URL, point them at:
+
+- `http://localhost:8787`
+
+Freeway serves the compatibility routes under that origin.
+
 ## HTTP Endpoints
 
 | Method | Path | Description |
 |---|---|---|
 | `GET` | `/` | Web console |
 | `GET` | `/health` | Service health |
-| `GET` | `/api/catalog` | Provider/model/health summary |
+| `GET` | `/api/catalog` | Provider / model / health summary |
 | `POST` | `/api/health/check/:provider` | Check one provider |
 | `POST` | `/api/health/check-all` | Check all providers |
 | `POST` | `/api/models/refresh` | Refresh provider model lists |
-| `POST` | `/api/config/keys` | Save runtime/persisted keys |
+| `POST` | `/api/config/keys` | Save runtime / persisted keys |
 | `GET` | `/v1/models` | OpenAI-compatible models list |
 | `POST` | `/v1/chat/completions` | OpenAI-compatible chat completions |
 | `POST` | `/v1/messages` | Anthropic-compatible messages |
@@ -167,19 +199,22 @@ src/
   config*.ts              # Runtime + persisted key config
   health.ts               # Provider health checks and summary
   anthropic-bridge.ts     # Anthropic <-> OpenAI request/response bridge
+  usage.ts                # Gateway-level usage normalization helpers
 ```
 
 ## Development
 
 ```bash
-npm run dev     # TypeScript watch build
-npm run build   # Compile to dist/
-npm start       # Run compiled server
+npm run dev
+npm run build
+npm start
+npm run test:usage
 ```
 
 ## Contributing
 
-Please read [contribution.md](./contribution.md).
+- English: [CONTRIBUTING.md](./CONTRIBUTING.md)
+- 中文： [contribution.md](./contribution.md)
 
 ## License
 

@@ -2,6 +2,7 @@ node_modules/
 dist/
 .freeway/
 .claude/
+.worktrees/
 .env
 .env.*
 *.log

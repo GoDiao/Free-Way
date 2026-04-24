@@ -10,6 +10,12 @@ export interface UsageEstimationInput {
   completionText: string;
 }
 
+export interface AnthropicCountTokenInput {
+  messages?: unknown;
+  system?: unknown;
+  tools?: unknown;
+}
+
 function estimateTokens(text: string): number {
   const trimmed = text.trim();
   if (!trimmed) return 0;
@@ -80,5 +86,22 @@ export function normalizeOpenAIResponseUsage(
   return {
     ...payload,
     usage: toOpenAIUsage(normalizedUsage),
+  };
+}
+
+export function estimateAnthropicCountTokens(input: AnthropicCountTokenInput) {
+  const promptText = JSON.stringify({
+    system: input.system ?? null,
+    messages: input.messages ?? [],
+    tools: input.tools ?? [],
+  });
+
+  const usage = estimateUsage({
+    promptText,
+    completionText: '',
+  });
+
+  return {
+    input_tokens: usage.prompt_tokens,
   };
 }

@@ -10,7 +10,7 @@ import {
   toAnthropicResponse,
   type AnthropicRequest,
 } from './anthropic-bridge.js';
-import { normalizeOpenAIResponseUsage } from './usage.js';
+import { estimateAnthropicCountTokens, normalizeOpenAIResponseUsage } from './usage.js';
 
 // Configure HTTP proxy for all fetch() calls if HTTP_PROXY is set
 try {
@@ -77,6 +77,11 @@ function sendStream(res: http.ServerResponse, status: number) {
   });
 }
 
+function sendNoContent(res: http.ServerResponse, allow: string) {
+  res.writeHead(204, { Allow: allow });
+  res.end();
+}
+
 async function readBody(req: http.IncomingMessage): Promise<string> {
   const chunks: Buffer[] = [];
   for await (const chunk of req) {
@@ -125,9 +130,9 @@ function checkGatewayAuth(req: http.IncomingMessage, res: http.ServerResponse): 
     return true;
   }
 
-  const auth = req.headers.authorization ?? '';
-  const match = auth.match(/^Bearer\s+(.+)$/);
-  const ok = !!match && match[1] === gatewayKey;
+  const bearer = (req.headers.authorization ?? '').match(/^Bearer\s+(.+)$/)?.[1] ?? '';
+  const apiKeyHeader = typeof req.headers['x-api-key'] === 'string' ? req.headers['x-api-key'] : '';
+  const ok = bearer === gatewayKey || apiKeyHeader === gatewayKey;
   trace('auth.check', {
     mode: authHeaderMode(req),
     hasAuthHeader: !!req.headers.authorization,
@@ -150,8 +155,8 @@ function checkGatewayAuth(req: http.IncomingMessage, res: http.ServerResponse): 
 
 const server = http.createServer(async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, HEAD, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-api-key');
 
   if (req.method === 'OPTIONS') {
     res.writeHead(204);
@@ -307,6 +312,31 @@ const server = http.createServer(async (req, res) => {
     }
 
     /* ── Anthropic-compatible endpoint ── */
+
+    if (pathname === '/v1/messages' && (req.method === 'HEAD' || req.method === 'OPTIONS')) {
+      if (!checkGatewayAuth(req, res)) return;
+      sendNoContent(res, 'POST, HEAD, OPTIONS');
+      return;
+    }
+
+    if (pathname === '/v1/messages/count_tokens' && (req.method === 'HEAD' || req.method === 'OPTIONS')) {
+      if (!checkGatewayAuth(req, res)) return;
+      sendNoContent(res, 'POST, HEAD, OPTIONS');
+      return;
+    }
+
+    if (pathname === '/v1/messages/count_tokens' && req.method === 'POST') {
+      if (!checkGatewayAuth(req, res)) return;
+      const raw = await readBody(req);
+      const payload = JSON.parse(raw) as Record<string, unknown>;
+      const result = estimateAnthropicCountTokens({
+        messages: payload.messages,
+        system: payload.system,
+        tools: payload.tools,
+      });
+      sendJSON(res, 200, result);
+      return;
+    }
 
     if (pathname === '/v1/messages' && req.method === 'POST') {
       if (!checkGatewayAuth(req, res)) return;

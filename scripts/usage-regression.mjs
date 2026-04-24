@@ -6,6 +6,7 @@ import {
 } from '../dist/anthropic-bridge.js';
 import {
   ensureUsage,
+  estimateAnthropicCountTokens,
   normalizeOpenAIResponseUsage,
   toOpenAIUsage,
 } from '../dist/usage.js';
@@ -72,5 +73,13 @@ assert.equal(normalizedCohereUsage.prompt_tokens, 12);
 assert.equal(normalizedCohereUsage.completion_tokens, 8);
 assert.equal(normalizedCohereUsage.total_tokens, 20);
 assert.equal(normalizedCohereUsage.estimated, false);
+
+const estimatedCount = estimateAnthropicCountTokens({
+  messages: [{ role: 'user', content: 'ping' }],
+  system: 'You are helpful.',
+  tools: [{ name: 'lookup', description: 'demo', input_schema: { type: 'object' } }],
+});
+assert.equal(typeof estimatedCount.input_tokens, 'number');
+assert.notEqual(estimatedCount.input_tokens, 0);
 
 console.log('usage regression checks passed');

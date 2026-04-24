@@ -195,6 +195,18 @@ export const providers: BaseProvider[] = [
       { id: 'nemotron-3-super-free', providerModelId: 'nemotron-3-super-free', modality: 'Text' },
     ],
   }),
+  p({
+    name: 'zenmux',
+    baseURL: 'https://zenmux.ai/api/v1',
+    apiKeyEnvVar: 'ZENMUX_API_KEY',
+    website: 'https://zenmux.ai',
+    models: [
+      { id: 'deepseek-v4-flash-free', providerModelId: 'deepseek/deepseek-v4-flash-free', context: 1000000, modality: 'Text' },
+      { id: 'deepseek-v4-pro-free', providerModelId: 'deepseek/deepseek-v4-pro-free', context: 1000000, modality: 'Text' },
+      { id: 'glm-4.7-flash-free', providerModelId: 'z-ai/glm-4.7-flash-free', context: 200000, modality: 'Text' },
+      { id: 'glm-4.6v-flash-free', providerModelId: 'z-ai/glm-4.6v-flash-free', context: 200000, modality: 'Text + Image' },
+    ],
+  }),
 ];
 
 export function getAvailableProviders(): BaseProvider[] {
@@ -237,6 +249,7 @@ import { fetchCohereModels, mergeCohereWithAllowlist } from '../models/cohere-sy
 import { fetchGitHubModels, loadGitHubCache, mergeGitHubWithAllowlist, saveGitHubCache } from '../models/github-sync.js';
 import { fetchCloudflareModels, loadCloudflareCache, mergeCloudflareWithAllowlist, saveCloudflareCache } from '../models/cloudflare-sync.js';
 import { fetchOpenCodeModels, loadOpenCodeCache, saveOpenCodeCache } from '../models/opencode-sync.js';
+import { fetchZenMuxModels, mergeZenMuxWithAllowlist } from '../models/zenmux-sync.js';
 
 const syncMeta = new Map<string, { updatedAt: number; source: string }>();
 
@@ -367,6 +380,30 @@ async function syncProviderModels(provider: BaseProvider): Promise<void> {
     return;
   }
 
+  if (provider.name === 'zenmux') {
+    try {
+      const fetched = await fetchZenMuxModels(apiKey);
+      const merged = mergeZenMuxWithAllowlist(fetched, provider.models);
+      if (merged.length > 0) {
+        provider.updateModels(merged);
+        syncMeta.set(provider.name, { updatedAt: Date.now(), source: 'api' });
+        await saveProviderModelCache(provider.name, merged);
+        console.log(`[${provider.name}] Synced ${merged.length} free models`);
+      } else {
+        console.warn(`[${provider.name}] API returned no free models from allowlist`);
+      }
+    } catch (err) {
+      console.warn(`[${provider.name}] API sync failed:`, err instanceof Error ? err.message : String(err));
+      const cached = await loadProviderModelCache(provider.name);
+      if (cached) {
+        provider.updateModels(cached.models);
+        syncMeta.set(provider.name, { updatedAt: cached.updatedAt, source: 'cache' });
+        console.log(`[${provider.name}] Fell back to cached ${cached.models.length} models`);
+      }
+    }
+    return;
+  }
+
   // Generic OpenAI-compatible provider
   try {
     const fetched = await fetchOpenAIModels(provider.baseURL, apiKey);
@@ -418,6 +455,14 @@ export async function loadAllModelCaches(): Promise<void> {
     }
     if (provider.name === 'opencode') {
       const cached = await loadOpenCodeCache();
+      if (cached) {
+        provider.updateModels(cached.models);
+        syncMeta.set(provider.name, { updatedAt: cached.updatedAt, source: 'cache' });
+      }
+      continue;
+    }
+    if (provider.name === 'zenmux') {
+      const cached = await loadProviderModelCache(provider.name);
       if (cached) {
         provider.updateModels(cached.models);
         syncMeta.set(provider.name, { updatedAt: cached.updatedAt, source: 'cache' });

@@ -280,7 +280,8 @@ export function toAnthropicResponse(
 }
 
 function sseEvent(event: Record<string, unknown>): string {
-  return `data: ${JSON.stringify(event)}\n\n`;
+  const eventName = typeof event.type === 'string' && event.type ? event.type : 'message';
+  return `event: ${eventName}\ndata: ${JSON.stringify(event)}\n\n`;
 }
 
 export function anthropicStreamStart(modelId: string): string {

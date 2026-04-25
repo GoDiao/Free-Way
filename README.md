@@ -38,11 +38,12 @@ Freeway exists to compress that fragmentation into a single local gateway that i
 ## What Freeway provides
 
 - OpenAI-compatible endpoints (`/v1/chat/completions`, `/v1/models`)
-- Anthropic-compatible endpoint (`/v1/messages`)
-- Provider aggregation and routing
+- Anthropic-compatible endpoint (`/v1/messages`, `/v1/messages/count_tokens`)
+- Provider aggregation and routing with automatic fallback
 - Runtime API key management
 - Health checks and a local web console
 - Gateway-level usage normalization for non-stream responses
+- **Works with Claude Code, Cursor, Continue.dev, OpenCode, and any OpenAI/Anthropic-compatible client**
 
 ## Coverage philosophy
 
@@ -194,6 +195,58 @@ For Anthropic-compatible clients that let you override the base URL, point them 
 - `http://localhost:8787`
 
 Freeway serves the compatibility routes under that origin.
+
+## Configure your agent
+
+Freeway exposes **both** OpenAI and Anthropic compatible endpoints, so most coding agents and LLM clients can connect directly.
+
+### Claude Code
+
+Set the base URL to Freeway:
+
+```bash
+export ANTHROPIC_BASE_URL=http://localhost:8787
+export ANTHROPIC_API_KEY=<your FREEWAY_API_KEY or any non-empty string>
+```
+
+Then run `claude` normally. Freeway routes Claude Code's Anthropic API calls to the best available free provider.
+
+### Cursor
+
+In Cursor Settings → Models → OpenAI API Key:
+- Base URL: `http://localhost:8787/v1`
+- API Key: your `FREEWAY_API_KEY` (or leave empty if gateway auth is off)
+
+### Continue.dev
+
+In `config.json`:
+
+```json
+{
+  "models": [
+    {
+      "title": "Freeway",
+      "provider": "openai",
+      "model": "llama-3.3-70b",
+      "apiBase": "http://localhost:8787/v1",
+      "apiKey": "your FREEWAY_API_KEY"
+    }
+  ]
+}
+```
+
+### OpenCode
+
+Set environment variables before running:
+
+```bash
+export OPENAI_BASE_URL=http://localhost:8787/v1
+export OPENAI_API_KEY=<your FREEWAY_API_KEY>
+```
+
+### Any other OpenAI/Anthropic client
+
+Point the base URL to `http://localhost:8787` (Anthropic) or `http://localhost:8787/v1` (OpenAI) and provide your gateway key if configured.
 
 ## HTTP Endpoints
 

@@ -3,289 +3,141 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Free-Way Console — Local LLM Control Plane</title>
+  <title>Freeway - Free API Router</title>
   <link rel="stylesheet" href="/static/style.css">
 </head>
-
 <body>
-  <div class="app-shell">
-    <!-- Top App Bar -->
-    <header class="console-topbar">
-      <div class="topbar-left">
-        <div class="brand-mark">
-          <span class="brand-dot"></span>
-          <div>
-            <div class="brand-name">Free-Way</div>
-            <div class="brand-subtitle">Local LLM Control Plane</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="topbar-center">
-        <div class="endpoint-pill">
-          <span class="endpoint-status"></span>
-          <span class="endpoint-label">localhost:8787</span>
-        </div>
-        <div class="protocol-pills">
-          <span>OpenAI /v1</span>
-          <span>Anthropic /v1/messages</span>
-        </div>
-      </div>
-
-      <div class="topbar-right">
-        <span class="runtime-pill">BYOK Runtime</span>
-        <a class="github-link" href="https://github.com/GoDiao/Free-Way" target="_blank" rel="noopener">GitHub ↗</a>
-      </div>
+  <div class="container">
+    <header>
+      <h1>FREEWAY</h1>
+      <p class="tagline">Local LLM Control Plane</p>
+      <p class="subtitle">免费大模型统一网关</p>
     </header>
 
-    <main class="console-layout">
-      <!-- Sidebar / Module Nav -->
-      <aside class="console-sidebar">
-        <div class="sidebar-section-label">Console</div>
+    <nav class="tabs">
+      <button class="tab-btn active" data-tab="providers">Providers</button>
+      <button class="tab-btn" data-tab="models">Models</button>
+      <button class="tab-btn" data-tab="usage">Usage</button>
+      <button class="tab-btn" data-tab="keys">API Keys</button>
+      <button class="tab-btn" data-tab="test">Test</button>
+    </nav>
 
-        <nav class="tabs console-nav">
-          <button class="tab-btn active" data-tab="providers">
-            <span class="tab-icon">◉</span>
-            <span>
-              <strong>Providers</strong>
-              <small>health & routes</small>
-            </span>
-          </button>
+    <!-- Providers Tab -->
+    <section id="providers" class="tab-content active">
+      <h2>Provider Status</h2>
+      <div class="health-summary" id="health-summary"></div>
+      <div class="provider-filters">
+        <input type="text" id="provider-search" placeholder="Search providers...">
+        <select id="provider-state-filter">
+          <option value="all">All states</option>
+          <option value="healthy">Healthy</option>
+          <option value="unhealthy">Unhealthy</option>
+          <option value="configured">Configured</option>
+          <option value="missing_key">Missing key</option>
+        </select>
+      </div>
+      <div class="provider-actions">
+        <button class="btn-primary" id="check-all-health">Test All Providers</button>
+        <button class="btn-secondary" id="refresh-models">Refresh All Models</button>
+      </div>
+      <div class="sync-meta" id="sync-meta"></div>
+      <div class="providers-grid" id="providers-grid">
+        <!-- Dynamic content -->
+      </div>
+    </section>
 
-          <button class="tab-btn" data-tab="models">
-            <span class="tab-icon">⊞</span>
-            <span>
-              <strong>Models</strong>
-              <small>catalog</small>
-            </span>
-          </button>
+    <!-- Models Tab -->
+    <section id="models" class="tab-content">
+      <h2>Available Models</h2>
+      <div class="filters">
+        <input type="text" id="model-search" placeholder="Search models...">
+      </div>
+      <div class="models-list" id="models-list">
+        <!-- Dynamic content -->
+      </div>
+    </section>
 
-          <button class="tab-btn" data-tab="usage">
-            <span class="tab-icon">◫</span>
-            <span>
-              <strong>Usage</strong>
-              <small>requests & tokens</small>
-            </span>
-          </button>
+    <!-- Usage Tab -->
+    <section id="usage" class="tab-content">
+      <h2>Usage Statistics</h2>
+      <p class="hint">Aggregated from non-streaming requests only. Streaming calls are not counted yet.</p>
+      <div class="usage-table-wrapper">
+        <table class="usage-table" id="usage-table">
+          <thead>
+            <tr>
+              <th>Model</th>
+              <th>Provider</th>
+              <th class="numeric">Calls</th>
+              <th class="numeric">Prompt Tokens</th>
+              <th class="numeric">Completion Tokens</th>
+              <th class="numeric">Total Tokens</th>
+              <th>Last Used</th>
+            </tr>
+          </thead>
+          <tbody id="usage-table-body">
+            <tr><td colspan="7" class="empty">No usage recorded yet.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
 
-          <button class="tab-btn" data-tab="keys">
-            <span class="tab-icon">⌁</span>
-            <span>
-              <strong>API Keys</strong>
-              <small>local config</small>
-            </span>
-          </button>
+    <!-- API Keys Tab -->
+    <section id="keys" class="tab-content">
+      <h2>Configure API Keys</h2>
+      <p class="hint">Keys are persisted to <code>.freeway/config.json</code> and survive restarts. Environment variables still take precedence.</p>
 
-          <button class="tab-btn" data-tab="test">
-            <span class="tab-icon">↗</span>
-            <span>
-              <strong>Test</strong>
-              <small>chat completion</small>
-            </span>
-          </button>
-        </nav>
+      <div class="gateway-key-section" id="gateway-key-section">
+        <h3>Gateway API Key</h3>
+        <p class="hint">Downstream agents (Cursor, Continue, etc.) use this key to access Freeway.</p>
+        <div class="key-input-group">
+          <label for="gateway-key">FREEWAY_API_KEY</label>
+          <input id="gateway-key" type="password" placeholder="Set a gateway key (optional)">
+        </div>
+      </div>
 
-        <div class="sidebar-card">
-          <div class="sidebar-card-label">Runtime</div>
-          <div class="runtime-row">
-            <span>Proxy</span>
-            <strong>None</strong>
+      <h3>Provider Keys</h3>
+      <div class="keys-form" id="keys-form">
+        <!-- Dynamic content -->
+      </div>
+      <button class="btn-primary" id="save-keys">Save Configuration</button>
+    </section>
+
+    <!-- Test Tab -->
+    <section id="test" class="tab-content">
+      <h2>Test Chat Completion</h2>
+      <div class="test-form">
+        <div class="form-group">
+          <label>Model</label>
+          <select id="test-model"></select>
+        </div>
+        <div class="form-group">
+          <label>Message</label>
+          <textarea id="test-message" rows="3" placeholder="Enter your message..."></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Temperature</label>
+            <input type="number" id="test-temp" value="0.7" min="0" max="2" step="0.1">
           </div>
-          <div class="runtime-row">
-            <span>Keys</span>
-            <strong>Local</strong>
-          </div>
-          <div class="runtime-row">
-            <span>Mode</span>
-            <strong>BYOK</strong>
+          <div class="form-group">
+            <label>Max Tokens</label>
+            <input type="number" id="test-max-tokens" value="1024" min="1">
           </div>
         </div>
-      </aside>
+        <div class="form-group checkbox">
+          <label><input type="checkbox" id="test-stream" checked> Stream response</label>
+        </div>
+        <button class="btn-primary" id="send-test">Send Request</button>
+      </div>
+      <div class="test-result" id="test-result">
+        <div class="result-header">Response</div>
+        <div class="route-info" id="route-info"></div>
+        <pre id="result-content"></pre>
+      </div>
+    </section>
 
-      <!-- Main Workspace -->
-      <section class="console-workspace">
-        <!-- Providers Tab -->
-        <section id="providers" class="tab-content active">
-          <div class="workspace-header">
-            <div>
-              <div class="section-kicker">Provider Health</div>
-              <h1>Route availability across your configured providers.</h1>
-              <p>Check keys, provider health, latency, model coverage, and fallback readiness from one local console.</p>
-            </div>
-
-            <div class="workspace-actions">
-              <button class="btn-secondary" id="refresh-models">Refresh Models</button>
-              <button class="btn-primary" id="check-all-health">Test All Providers</button>
-            </div>
-          </div>
-
-          <div class="health-summary" id="health-summary"></div>
-
-          <div class="toolbar">
-            <div class="toolbar-main">
-              <input type="text" id="provider-search" placeholder="Search providers, base URLs, env vars...">
-              <select id="provider-state-filter">
-                <option value="all">All states</option>
-                <option value="healthy">Healthy</option>
-                <option value="unhealthy">Unhealthy</option>
-                <option value="configured">Configured</option>
-                <option value="missing_key">Missing key</option>
-              </select>
-            </div>
-            <div class="sync-meta" id="sync-meta"></div>
-          </div>
-
-          <div class="providers-grid" id="providers-grid">
-            <!-- Dynamic content -->
-          </div>
-        </section>
-
-        <!-- Models Tab -->
-        <section id="models" class="tab-content">
-          <div class="workspace-header">
-            <div>
-              <div class="section-kicker">Model Catalog</div>
-              <h1>Unified model catalog discovered from providers.</h1>
-              <p>Browse canonical models, provider-specific model IDs, context windows, output limits, and modality.</p>
-            </div>
-          </div>
-
-          <div class="toolbar">
-            <div class="toolbar-main">
-              <input type="text" id="model-search" placeholder="Search models, providers, modality...">
-            </div>
-          </div>
-
-          <div class="models-list" id="models-list">
-            <!-- Dynamic content -->
-          </div>
-        </section>
-
-        <!-- Usage Tab -->
-        <section id="usage" class="tab-content">
-          <div class="workspace-header">
-            <div>
-              <div class="section-kicker">Usage</div>
-              <h1>Request and token usage by model and provider.</h1>
-              <p>Aggregated from non-streaming requests only. Streaming calls are not counted yet.</p>
-            </div>
-          </div>
-
-          <div class="usage-table-wrapper">
-            <table class="usage-table" id="usage-table">
-              <thead>
-                <tr>
-                  <th>Model</th>
-                  <th>Provider</th>
-                  <th class="numeric">Calls</th>
-                  <th class="numeric">Prompt Tokens</th>
-                  <th class="numeric">Completion Tokens</th>
-                  <th class="numeric">Total Tokens</th>
-                  <th>Last Used</th>
-                </tr>
-              </thead>
-              <tbody id="usage-table-body">
-                <tr><td colspan="7" class="empty">No usage recorded yet.</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <!-- API Keys Tab -->
-        <section id="keys" class="tab-content">
-          <div class="workspace-header">
-            <div>
-              <div class="section-kicker">Local Configuration</div>
-              <h1>Configure gateway and provider keys locally.</h1>
-              <p>Keys are persisted to <code>.freeway/config.json</code>. Environment variables still take precedence.</p>
-            </div>
-
-            <div class="workspace-actions">
-              <button class="btn-primary" id="save-keys">Save Configuration</button>
-            </div>
-          </div>
-
-          <div class="gateway-key-section" id="gateway-key-section">
-            <div class="config-card-header">
-              <div>
-                <h3>Gateway API Key</h3>
-                <p class="hint">Downstream agents such as Cursor, Continue, Cline, and Claude-compatible clients use this key to access Free-Way.</p>
-              </div>
-              <span class="config-badge">Optional</span>
-            </div>
-
-            <div class="key-input-group">
-              <label for="gateway-key">FREEWAY_API_KEY</label>
-              <input id="gateway-key" type="password" placeholder="Set a gateway key">
-            </div>
-          </div>
-
-          <div class="subsection-header">
-            <h2>Provider Keys</h2>
-            <p>Bring your own provider keys. Free-Way never uses a hosted proxy or shared quota pool.</p>
-          </div>
-
-          <div class="keys-form" id="keys-form">
-            <!-- Dynamic content -->
-          </div>
-        </section>
-
-        <!-- Test Tab -->
-        <section id="test" class="tab-content">
-          <div class="workspace-header">
-            <div>
-              <div class="section-kicker">Route Test</div>
-              <h1>Send a test chat completion through Free-Way.</h1>
-              <p>Validate model routing, provider selection, streaming, and response format from the local gateway.</p>
-            </div>
-          </div>
-
-          <div class="test-grid">
-            <div class="test-form">
-              <div class="form-group">
-                <label>Model</label>
-                <select id="test-model"></select>
-              </div>
-
-              <div class="form-group">
-                <label>Message</label>
-                <textarea id="test-message" rows="5" placeholder="Enter your message..."></textarea>
-              </div>
-
-              <div class="form-row">
-                <div class="form-group">
-                  <label>Temperature</label>
-                  <input type="number" id="test-temp" value="0.7" min="0" max="2" step="0.1">
-                </div>
-
-                <div class="form-group">
-                  <label>Max Tokens</label>
-                  <input type="number" id="test-max-tokens" value="1024" min="1">
-                </div>
-              </div>
-
-              <div class="form-group checkbox">
-                <label><input type="checkbox" id="test-stream" checked> Stream response</label>
-              </div>
-
-              <button class="btn-primary" id="send-test">Send Request</button>
-            </div>
-
-            <div class="test-result" id="test-result">
-              <div class="result-header">
-                <span>Response</span>
-                <small>OpenAI-compatible output</small>
-              </div>
-              <div class="route-info" id="route-info"></div>
-              <pre id="result-content"></pre>
-            </div>
-          </div>
-        </section>
-      </section>
-    </main>
-
-    <footer class="console-footer">
-      <p>Free-Way Console · Local-first · BYOK · MIT License</p>
+    <footer>
+      <p>Freeway — Open source free API router</p>
     </footer>
   </div>
 

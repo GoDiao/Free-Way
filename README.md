@@ -5,11 +5,11 @@
 <h1 align="center">Freeway</h1>
 
 <p align="center">
-  <strong>Connect to every free LLM API that matters.</strong>
+  <strong>A local control plane for free LLM APIs.</strong>
 </p>
 
 <p align="center">
-  Freeway is an open-source gateway for aggregating the fast-moving free LLM ecosystem behind a cleaner, more compatible local API surface.
+  Freeway is an open-source gateway that aggregates the fast-moving free LLM ecosystem behind a unified local API surface. Bring your own keys — Freeway normalizes OpenAI/Anthropic protocols, routes requests, and falls back across providers. All from localhost.
 </p>
 
 <p align="center">
@@ -20,7 +20,7 @@
 
 ## Mission
 
-Freeway is built to track, normalize, and aggregate the growing landscape of free LLM APIs.
+Freeway is a local control plane for free LLM APIs. It normalizes protocol differences, resolves models, checks route availability, and falls back when a provider fails — all from localhost.
 
 The goal is not to wrap one provider. The goal is to offer one gateway layer that can keep absorbing the providers, models, and compatibility quirks that matter across the free-model ecosystem.
 
@@ -33,16 +33,16 @@ The free-model ecosystem is expanding quickly, but the developer experience is s
 - free tiers appear, move, rate-limit, or disappear
 - clients and coding agents still want one predictable local endpoint
 
-Freeway exists to compress that fragmentation into a single local gateway that is easier to operate, easier to integrate, and easier to extend.
+Freeway compresses that fragmentation into a single local gateway that is easier to operate, easier to integrate, and easier to extend.
 
 ## What Freeway provides
 
-- OpenAI-compatible endpoints (`/v1/chat/completions`, `/v1/models`)
-- Anthropic-compatible endpoint (`/v1/messages`, `/v1/messages/count_tokens`)
-- Provider aggregation and routing with automatic fallback
-- Runtime API key management
-- Health checks and a local web console
-- Gateway-level usage normalization for non-stream responses
+- **Protocol normalization** — OpenAI and Anthropic compatible endpoints from one server
+- **Fallback routing** — when a provider is rate-limited or unavailable, Freeway tries another
+- **Model discovery** — fetch available models from supported providers and keep a unified free-tier catalog updated
+- **Runtime API key management** — configure provider keys through the web UI or REST API, no restart required
+- **Health checks** — monitor provider availability and latency from the console
+- **Local web console** — browse providers and models, check health, configure keys, test requests
 - **Works with Claude Code, Cursor, Continue.dev, OpenCode, and any OpenAI/Anthropic-compatible client**
 
 ## Coverage philosophy

@@ -5,11 +5,11 @@
 <h1 align="center">Freeway</h1>
 
 <p align="center">
-  <strong>Connect to every free LLM API that matters.</strong>
+  <strong>一个免费 LLM API 的本地控制平面。</strong>
 </p>
 
 <p align="center">
-  Freeway 是一个开源网关，目标是在快速变化的免费 LLM 生态之上，提供更统一、更兼容的本地 API 聚合层。
+  Freeway 是一个开源网关，在快速变化的免费 LLM 生态之上提供统一的本地 API 聚合层。自备 Key — Freeway 自动归一化 OpenAI/Anthropic 协议、路由请求，并在 Provider 之间自动回退。一切都在 localhost。
 </p>
 
 <p align="center">
@@ -20,29 +20,29 @@
 
 ## 项目使命
 
-Freeway 的目标，是持续追踪、归一化并聚合不断扩张的免费 LLM API 生态。
+Freeway 是一个面向免费 LLM API 的本地控制平面。它归一化协议差异、解析模型、检查路由可用性，并在 Provider 失败时自动回退 — 一切都在 localhost。
 
-它不是只包一层单一 Provider，也不是只代理少数几个接口；它更像一个网关层，持续吸收真正重要的 Provider、模型能力和兼容性差异，并把这些差异收敛成更稳定的本地调用入口。
+目标不是只包一层单一 Provider，而是提供一个网关层，持续吸收真正重要的 Provider、模型能力和兼容性差异，把这些差异收敛成更稳定的本地调用入口。
 
 ## 为什么要做 Freeway
 
 免费模型生态增长很快，但开发体验依然高度碎片化：
 
-- 不同 Provider 的接口行为和返回结构并不一致
+- 不同 Provider 的接口行为和返回结构不一致
 - 模型可用性变化很快
-- 免费额度、访问限制和稳定性会不断变化
+- 免费额度、访问限制和稳定性不断变化
 - 脚本、Agent 和本地工具依然希望只有一个可靠的 base URL
 
-Freeway 的价值，就是把这些碎片化差异压缩进一个更容易接入、更容易运维、也更容易扩展的本地网关里。
+Freeway 把这种碎片化压缩进一个更易接入、更易运维、也更易扩展的本地网关。
 
 ## Freeway 提供什么
 
-- OpenAI 兼容接口：`/v1/chat/completions`、`/v1/models`
-- Anthropic 兼容接口：`/v1/messages`、`/v1/messages/count_tokens`
-- Provider 聚合与路由，自动失败回退
-- 运行时 API Key 管理
-- 健康检查与本地 Web 控制台
-- 网关层的非流式 usage 归一化
+- **协议归一化** — 同一服务同时暴露 OpenAI 与 Anthropic 兼容接口
+- **回退路由** — Provider 限流或不可用时，自动尝试其他兼容 Provider
+- **模型发现** — 从支持的 Provider 拉取可用模型，维护统一的免费模型目录
+- **运行时 Key 管理** — 通过 Web UI 或 REST API 配置密钥，无需重启
+- **健康检查** — 从控制台监控 Provider 可用性和延迟
+- **本地 Web 控制台** — 浏览 Provider 和模型、检查健康、配置密钥、测试请求
 - **支持 Claude Code、Cursor、Continue.dev、OpenCode 等任何 OpenAI/Anthropic 兼容客户端**
 
 ## Coverage 理念
@@ -51,7 +51,7 @@ Freeway 不把自己定位成某一个 API Vendor 的薄包装。
 
 它是一个聚合层，目标是持续跟上免费 LLM 生态的变化：追踪有价值的 Provider，抹平兼容性差异，并把最终暴露给本地工具、脚本和 Agent 的接口做得更稳定。
 
-它的目标是更广覆盖，但实现策略保持务实：优先接入真正重要的免费 API，优先解决真实兼容问题，优先让网关在不断变化的生态里保持可用。
+目标是更广覆盖，实现策略保持务实：优先接入真正重要的免费 API，优先解决真实兼容问题，优先让网关在不断变化的生态里保持可用。
 
 ## 生态信息源
 

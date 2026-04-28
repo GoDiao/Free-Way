@@ -13,6 +13,15 @@ const healthLabels = {
   unhealthy: 'Unhealthy',
 };
 
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
+
 async function fetchJSON(url, options) {
   const response = await fetch(url, options);
   if (!response.ok) {
@@ -38,6 +47,63 @@ function formatTime(ts) {
 function formatLatency(ms) {
   if (ms === null || ms === undefined) return '—';
   return `${ms} ms`;
+}
+
+function getRouteMeta(stateKey) {
+  const meta = {
+    healthy: {
+      role: 'Active route',
+      tone: 'healthy',
+      headline: 'Ready for traffic',
+      description: 'This provider can receive routed requests.',
+      laneStatus: '200 OK',
+    },
+    configured: {
+      role: 'Pending check',
+      tone: 'configured',
+      headline: 'Key configured',
+      description: 'Run a health check before using this route.',
+      laneStatus: 'untested',
+    },
+    unhealthy: {
+      role: 'Unavailable',
+      tone: 'unhealthy',
+      headline: 'Route failing',
+      description: 'Free-Way should avoid this route until it recovers.',
+      laneStatus: 'failed',
+    },
+    missing_key: {
+      role: 'Key required',
+      tone: 'missing_key',
+      headline: 'Not configured',
+      description: 'Add a provider key to enable this route.',
+      laneStatus: 'no key',
+    },
+  };
+
+  return meta[stateKey] ?? {
+    role: 'Unknown',
+    tone: 'missing_key',
+    headline: 'Unknown state',
+    description: 'Provider state is not available.',
+    laneStatus: 'unknown',
+  };
+}
+
+function getLatencyTone(ms) {
+  if (ms === null || ms === undefined) return 'muted';
+  if (ms < 800) return 'good';
+  if (ms < 2500) return 'warn';
+  return 'bad';
+}
+
+function getProviderInitials(name) {
+  return String(name ?? '')
+    .split(/[\s_-]+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map(part => part[0]?.toUpperCase())
+    .join('') || 'P';
 }
 
 function renderHealthSummary() {
@@ -84,59 +150,179 @@ function renderProviders() {
     return matchesSearch && matchesState;
   });
 
+  if (filteredProviders.length === 0) {
+    grid.innerHTML = `
+      <div class="empty-state-card">
+        <div class="empty-state-icon">⌁</div>
+        <div class="empty-state-title">No providers found</div>
+        <div class="empty-state-desc">Try changing the search query or provider state filter.</div>
+      </div>
+    `;
+    return;
+  }
+
   grid.innerHTML = filteredProviders.map(provider => {
     const stateKey = getProviderHealthState(provider);
     const statusText = healthLabels[stateKey] ?? stateKey;
-    const message = provider.health?.message ?? '';
+    const routeMeta = getRouteMeta(stateKey);
+    const message = provider.health?.message ?? routeMeta.description;
 
-    // Find models supported by this provider from the canonical list
     const providerModels = state.models
-      .filter(m => m.providers.some(p => p.name === provider.name))
-      .map(m => {
-        const p = m.providers.find(x => x.name === provider.name);
-        return { id: m.id, actualId: p?.providerModelId ?? m.id };
+      .filter(model => model.providers.some(p => p.name === provider.name))
+      .map(model => {
+        const providerRoute = model.providers.find(x => x.name === provider.name);
+        return {
+          id: model.id,
+          actualId: providerRoute?.providerModelId ?? model.id,
+        };
       });
 
+    const modelCount = provider.modelCount ?? providerModels.length;
+    const visibleModels = providerModels.slice(0, 36);
+    const hiddenModelCount = Math.max(0, providerModels.length - visibleModels.length);
+
     const modelListHtml = providerModels.length > 0
-      ? `<div class="model-list">${providerModels.map(m =>
-          `<div class="model-tag" title="Actual: ${m.actualId}">${m.id}</div>`
-        ).join('')}</div>`
-      : '<div class="model-list-empty">No models found</div>';
+      ? `
+        <div class="model-list route-model-list">
+          ${visibleModels.map(model => `
+            <div class="model-tag route-model-tag" title="Provider model: ${escapeHtml(model.actualId)}">
+              ${escapeHtml(model.id)}
+            </div>
+          `).join('')}
+          ${hiddenModelCount > 0 ? `<div class="model-tag route-model-tag muted">+${hiddenModelCount} more</div>` : ''}
+        </div>
+      `
+      : '<div class="model-list-empty">No models found for this provider.</div>';
 
     const websiteLink = provider.website
-      ? `<p><strong>Website</strong><br><a href="${provider.website}" target="_blank" rel="noopener noreferrer">${provider.website}</a></p>`
+      ? `
+        <a class="route-link" href="${escapeHtml(provider.website)}" target="_blank" rel="noopener noreferrer">
+          Provider site ↗
+        </a>
+      `
       : '';
 
+    const latency = provider.health?.latencyMs ?? null;
+    const latencyTone = getLatencyTone(latency);
+    const lastStatus = provider.health?.lastStatusCode ?? '—';
+    const lastSuccess = provider.health?.lastSuccessAt ?? null;
+    const checkedAt = provider.health?.checkedAt ?? null;
+
     return `
-    <article class="provider-card ${stateKey}">
-      <div class="provider-header">
-        <div class="provider-name">${provider.name}</div>
-        <span class="provider-status ${stateKey}">${statusText}</span>
-      </div>
-      <div class="provider-info">
-        <p><strong>Base URL</strong><br>${provider.baseURL}</p>
-        <p><strong>Env</strong><br><code>${provider.apiKeyEnvVar}</code></p>
-        ${websiteLink}
-      </div>
-      <div class="provider-metrics">
-        <div>Latency: <span>${formatLatency(provider.health?.latencyMs ?? null)}</span></div>
-        <div>Last status: <span>${provider.health?.lastStatusCode ?? '—'}</span></div>
-        <div>Last success: <span>${formatTime(provider.health?.lastSuccessAt ?? null)}</span></div>
-      </div>
-      <div class="provider-models">
-        <div class="provider-models-header">
-          <button class="provider-model-toggle" type="button" data-toggle-models aria-expanded="false">
-            <span>${provider.modelCount} models</span>
-            <span class="provider-model-toggle-icon">▾</span>
-          </button>
-          <button class="btn-secondary" data-check-provider="${provider.name}">Test</button>
+      <article class="provider-card route-health-card ${stateKey}">
+        <div class="route-card-topline"></div>
+
+        <div class="route-card-header">
+          <div class="route-provider-main">
+            <div class="route-provider-icon ${stateKey}">
+              ${escapeHtml(getProviderInitials(provider.name))}
+            </div>
+
+            <div class="route-provider-title">
+              <div class="route-provider-name">${escapeHtml(provider.name)}</div>
+              <div class="route-provider-role">${escapeHtml(routeMeta.role)}</div>
+            </div>
+          </div>
+
+          <span class="provider-status route-status ${stateKey}">
+            ${escapeHtml(statusText)}
+          </span>
         </div>
-        <div class="health-message">${message} · checked: ${formatTime(provider.health?.checkedAt ?? null)}</div>
-        <div class="provider-model-list-wrapper">
-          ${modelListHtml}
+
+        <div class="route-lane ${stateKey}">
+          <div class="route-lane-node source">
+            <span>Free-Way</span>
+            <strong>localhost</strong>
+          </div>
+
+          <div class="route-lane-line">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+
+          <div class="route-lane-node target">
+            <span>Provider</span>
+            <strong>${escapeHtml(provider.name)}</strong>
+          </div>
+
+          <div class="route-lane-result ${stateKey}">
+            ${escapeHtml(routeMeta.laneStatus)}
+          </div>
         </div>
-      </div>
-    </article>`;
+
+        <div class="route-health-copy route-detail-block">
+          <div class="route-health-headline">${escapeHtml(routeMeta.headline)}</div>
+          <div class="route-health-message">${escapeHtml(message)}</div>
+        </div>
+
+        <div class="route-metrics">
+          <div class="route-metric">
+            <span>Latency</span>
+            <strong class="latency-${latencyTone}">${formatLatency(latency)}</strong>
+          </div>
+
+          <div class="route-metric">
+            <span>Status</span>
+            <strong>${escapeHtml(lastStatus)}</strong>
+          </div>
+
+          <div class="route-metric">
+            <span>Models</span>
+            <strong>${escapeHtml(modelCount)}</strong>
+          </div>
+
+          <div class="route-metric wide">
+            <span>Last success</span>
+            <strong>${escapeHtml(formatTime(lastSuccess))}</strong>
+          </div>
+        </div>
+
+        <div class="route-detail-block route-config">
+          <div class="route-config-row">
+            <span>Base URL</span>
+            <code title="${escapeHtml(provider.baseURL)}">${escapeHtml(provider.baseURL)}</code>
+          </div>
+
+          <div class="route-config-row">
+            <span>Env</span>
+            <code>${escapeHtml(provider.apiKeyEnvVar)}</code>
+          </div>
+
+          ${websiteLink ? `
+            <div class="route-config-row route-config-link">
+              <span>Docs</span>
+              ${websiteLink}
+            </div>
+          ` : ''}
+        </div>
+
+        <div class="provider-models route-models">
+          <div class="provider-models-header route-models-header">
+            <button class="provider-model-toggle route-model-toggle" type="button" data-toggle-models aria-expanded="false">
+              <span>${escapeHtml(modelCount)} models available</span>
+              <span class="provider-model-toggle-icon">▾</span>
+            </button>
+
+            <button class="btn-secondary route-details-btn" type="button" data-toggle-details aria-expanded="false">
+              Details
+            </button>
+
+            <button class="btn-secondary route-test-btn" data-check-provider="${escapeHtml(provider.name)}">
+              Test route
+            </button>
+          </div>
+
+          <div class="route-check-meta route-detail-block">
+            Last checked: ${escapeHtml(formatTime(checkedAt))}
+          </div>
+
+          <div class="provider-model-list-wrapper route-model-list-wrapper route-detail-block">
+            ${modelListHtml}
+          </div>
+        </div>
+      </article>
+    `;
   }).join('');
 
   setTimeout(() => {
@@ -150,9 +336,21 @@ function renderProviders() {
       });
     });
 
+    grid.querySelectorAll('[data-toggle-details]').forEach(button => {
+      button.addEventListener('click', () => {
+        const card = button.closest('.provider-card');
+        const isOpen = button.getAttribute('aria-expanded') === 'true';
+        const nextOpen = !isOpen;
+        button.setAttribute('aria-expanded', String(nextOpen));
+        button.textContent = nextOpen ? 'Hide details' : 'Details';
+        card.classList.toggle('details-open', nextOpen);
+      });
+    });
+
     grid.querySelectorAll('[data-check-provider]').forEach(button => {
       button.addEventListener('click', async () => {
         const provider = button.getAttribute('data-check-provider');
+
         try {
           button.disabled = true;
           button.textContent = 'Testing...';
@@ -162,7 +360,7 @@ function renderProviders() {
           alert(error.message);
         } finally {
           button.disabled = false;
-          button.textContent = 'Test';
+          button.textContent = 'Test route';
         }
       });
     });

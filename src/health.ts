@@ -174,13 +174,29 @@ export async function checkProviderHealth(providerName: string): Promise<Provide
 }
 
 export async function checkAllProvidersHealth(): Promise<ProviderHealth[]> {
-  const results: ProviderHealth[] = [];
-  for (const provider of providers) {
-    results.push(await checkProviderHealth(provider.name));
-  }
-  return results;
-}
+  const results = await Promise.allSettled(
+    providers.map((provider) => checkProviderHealth(provider.name))
+  );
 
+  return results.map((result, index): ProviderHealth => {
+    const provider = providers[index]; // 
+    if (result.status === "fulfilled") {
+      return result.value;
+    } else {
+      const reason = (result as PromiseRejectedResult).reason;
+      return {
+        provider: provider.name, // 
+        state: "unhealthy" as const,
+        message: String(reason),
+        checkedAt: Date.now(),
+        latencyMs: 0,
+        lastStatusCode: null,
+        lastError: String(reason),
+        lastSuccessAt: null,
+      };
+    }
+  });
+}
 export function getHealthSummary(): HealthSummary {
   const items = getAllProviderHealth();
   const summary: HealthSummary = {

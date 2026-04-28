@@ -72,6 +72,12 @@ class UsageTracker {
     return Array.from(this.records.values()).sort((a, b) => b.lastUsedAt - a.lastUsedAt);
   }
 
+  clear(): UsageRecord[] {
+    const records = Array.from(this.records.values());
+    this.records.clear();
+    return records;
+  }
+
   private async flush(): Promise<void> {
     await mkdir(path.dirname(CACHE_FILE), { recursive: true });
     await writeFile(CACHE_FILE, JSON.stringify(this.getStats(), null, 2));

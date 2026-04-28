@@ -213,6 +213,11 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
+    if (pathname === '/api/usage' && req.method === 'DELETE') {
+      sendJSON(res, 200, { records: usageTracker.clear() });
+      return;
+    }
+
     if (pathname === '/api/config/keys' && req.method === 'POST') {
       const raw = await readBody(req);
       const payload = JSON.parse(raw) as { keys?: Record<string, string>; gatewayKey?: string };

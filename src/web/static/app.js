@@ -275,6 +275,29 @@ async function loadUsage() {
   }
 }
 
+async function clearUsage() {
+  if (!state.usageRecords || state.usageRecords.length === 0) {
+    alert('No usage records to clear.');
+    return;
+  }
+  if (!confirm('Are you sure you want to clear all usage records? This action cannot be undone.'))
+    return;
+  try {
+    const button = document.getElementById('clear-usage');
+    button.disabled = true;
+    button.textContent = 'Clearing...';
+    await fetchJSON('/api/usage', { method: 'DELETE' });
+    state.usageRecords = [];
+    renderUsage();
+  } catch (error) {
+    alert(error.message);
+  } finally {
+    const button = document.getElementById('clear-usage');
+    button.disabled = false;
+    button.textContent = 'Clear Usage';
+  }
+}
+
 async function loadCatalog() {
   const data = await fetchJSON('/api/catalog');
   state.providers = data.providers;
@@ -450,6 +473,11 @@ function bindEvents() {
       button.textContent = 'Refresh All Models';
     }
   });
+
+  const clearUsageBtn = document.getElementById('clear-usage');
+  if (clearUsageBtn) {
+    clearUsageBtn.addEventListener('click', clearUsage);
+  }
 }
 
 async function init() {

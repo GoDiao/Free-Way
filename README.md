@@ -129,6 +129,8 @@ Freeway exposes **both** OpenAI and Anthropic compatible endpoints, so most codi
 
 > Detailed per-agent setup guides are available in [`docs/agents/`](./docs/agents/).
 
+- [OpenCode setup guide](./docs/agents/opencode.md)
+
 ### Claude Code
 
 Set the base URL to Freeway:

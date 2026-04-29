@@ -369,6 +369,7 @@ function renderProviders() {
 
 function renderModels() {
   const search = document.getElementById('model-search').value.trim().toLowerCase();
+  const sortKey = document.getElementById('model-sort')?.value || 'name';
   const list = document.getElementById('models-list');
 
   const filtered = state.models.filter(model => {
@@ -380,7 +381,17 @@ function renderModels() {
     return matchesSearch;
   });
 
-  list.innerHTML = filtered.map(model => `
+  const sorted = filtered.slice().sort((a, b) => {
+    if (sortKey === 'context') {
+      return (b.context ?? 0) - (a.context ?? 0) || a.id.localeCompare(b.id);
+    }
+    if (sortKey === 'providers') {
+      return b.providers.length - a.providers.length || a.id.localeCompare(b.id);
+    }
+    return a.id.localeCompare(b.id);
+  });
+
+  list.innerHTML = sorted.map(model => `
     <div class="model-item">
       <div class="model-info">
         <div>
@@ -638,6 +649,7 @@ function setupTabs() {
 
 function bindEvents() {
   document.getElementById('model-search').addEventListener('input', renderModels);
+  document.getElementById('model-sort').addEventListener('change', renderModels);
   document.getElementById('provider-search').addEventListener('input', renderProviders);
   document.getElementById('provider-state-filter').addEventListener('change', renderProviders);
   document.getElementById('save-keys').addEventListener('click', saveKeys);

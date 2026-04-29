@@ -1318,6 +1318,29 @@ body {
   font-size: 0.72rem;
 }
 
+.toolbar select {
+  min-width: 180px;
+  padding-right: 2.6rem;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--text-primary) 50%),
+    linear-gradient(135deg, var(--text-primary) 50%, transparent 50%);
+  background-position: calc(100% - 1rem) center, calc(100% - 0.6rem) center;
+  background-size: 6px 6px;
+  background-repeat: no-repeat;
+}
+
+.toolbar select::-ms-expand {
+  display: none;
+}
+
+.toolbar select option {
+  background: rgba(18, 18, 24, 0.96);
+  color: var(--text-primary);
+}
+
 .toolbar input {
   flex: 1;
 }

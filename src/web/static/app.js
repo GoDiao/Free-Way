@@ -634,6 +634,78 @@ function formatNumber(value) {
   return String(value);
 }
 
+async function copyText(value) {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(value);
+    return;
+  }
+
+  const textarea = document.createElement('textarea');
+  textarea.value = value;
+  textarea.setAttribute('readonly', '');
+  textarea.style.position = 'fixed';
+  textarea.style.opacity = '0';
+  document.body.appendChild(textarea);
+  textarea.select();
+  document.execCommand('copy');
+  document.body.removeChild(textarea);
+}
+
+function getConsoleEndpointUrls() {
+  const origin = window.location.origin;
+  return {
+    openai: `${origin}/v1`,
+    anthropic: origin,
+  };
+}
+
+function renderConsoleEndpointUrls(endpoints) {
+  document.querySelectorAll('[data-endpoint-display]').forEach(element => {
+    const key = element.getAttribute('data-endpoint-display');
+    const endpoint = endpoints[key];
+    if (endpoint) element.textContent = endpoint;
+  });
+}
+
+function setupEndpointCopyButtons() {
+  const feedback = document.getElementById('endpoint-copy-feedback');
+  const endpoints = getConsoleEndpointUrls();
+  const buttons = document.querySelectorAll('[data-copy-endpoint-key]');
+  let feedbackTimer = 0;
+
+  renderConsoleEndpointUrls(endpoints);
+
+  buttons.forEach(button => {
+    button.addEventListener('click', async () => {
+      const key = button.getAttribute('data-copy-endpoint-key');
+      const endpoint = endpoints[key];
+      if (!endpoint) return;
+
+      const previousText = button.textContent.trim() || 'Copy';
+      button.disabled = true;
+
+      try {
+        await copyText(endpoint);
+        button.textContent = 'Copied';
+        if (feedback) feedback.textContent = `Copied ${endpoint}`;
+      } catch {
+        button.textContent = 'Retry';
+        if (feedback) feedback.textContent = 'Copy failed';
+      } finally {
+        window.clearTimeout(feedbackTimer);
+        feedbackTimer = window.setTimeout(() => {
+          if (feedback) feedback.textContent = '';
+        }, 1400);
+
+        window.setTimeout(() => {
+          button.disabled = false;
+          button.textContent = previousText;
+        }, 1400);
+      }
+    });
+  });
+}
+
 function setupTabs() {
   const buttons = document.querySelectorAll('.tab-btn');
   const tabs = document.querySelectorAll('.tab-content');
@@ -648,6 +720,7 @@ function setupTabs() {
 }
 
 function bindEvents() {
+  setupEndpointCopyButtons();
   document.getElementById('model-search').addEventListener('input', renderModels);
   document.getElementById('model-sort').addEventListener('change', renderModels);
   document.getElementById('provider-search').addEventListener('input', renderProviders);

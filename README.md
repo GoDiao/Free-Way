@@ -130,6 +130,7 @@ Freeway exposes **both** OpenAI and Anthropic compatible endpoints, so most codi
 > Detailed per-agent setup guides are available in [`docs/agents/`](./docs/agents/).
 
 - [OpenCode setup guide](./docs/agents/opencode.md)
+- [Aider Integration Guide](./docs/agents/aider.md)
 
 ### Claude Code
 

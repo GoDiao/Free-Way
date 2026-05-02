@@ -651,14 +651,34 @@ async function copyText(value) {
   document.body.removeChild(textarea);
 }
 
+function getConsoleEndpointUrls() {
+  const origin = window.location.origin;
+  return {
+    openai: `${origin}/v1`,
+    anthropic: origin,
+  };
+}
+
+function renderConsoleEndpointUrls(endpoints) {
+  document.querySelectorAll('[data-endpoint-display]').forEach(element => {
+    const key = element.getAttribute('data-endpoint-display');
+    const endpoint = endpoints[key];
+    if (endpoint) element.textContent = endpoint;
+  });
+}
+
 function setupEndpointCopyButtons() {
   const feedback = document.getElementById('endpoint-copy-feedback');
-  const buttons = document.querySelectorAll('[data-copy-endpoint]');
+  const endpoints = getConsoleEndpointUrls();
+  const buttons = document.querySelectorAll('[data-copy-endpoint-key]');
   let feedbackTimer = 0;
+
+  renderConsoleEndpointUrls(endpoints);
 
   buttons.forEach(button => {
     button.addEventListener('click', async () => {
-      const endpoint = button.getAttribute('data-copy-endpoint');
+      const key = button.getAttribute('data-copy-endpoint-key');
+      const endpoint = endpoints[key];
       if (!endpoint) return;
 
       const previousText = button.textContent.trim() || 'Copy';

@@ -1091,6 +1091,9 @@ body {
   top: 84px;
   align-self: start;
   height: calc(100vh - 104px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
   padding: 1rem;
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
@@ -1224,6 +1227,82 @@ body {
   font-family: var(--font-mono);
   color: var(--green);
   font-weight: 500;
+}
+
+.endpoint-copy-card {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.endpoint-copy-list {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.endpoint-copy-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.45rem;
+  padding: 0.55rem;
+  border: 1px solid rgba(255,255,255,0.045);
+  border-radius: var(--radius-sm);
+  background: rgba(255,255,255,0.014);
+}
+
+.endpoint-copy-meta {
+  min-width: 0;
+}
+
+.endpoint-copy-meta span {
+  display: block;
+  margin-bottom: 0.18rem;
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.endpoint-copy-meta code {
+  display: block;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
+.endpoint-copy-button {
+  justify-self: start;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  font-weight: 600;
+  padding: 0.36rem 0.52rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(74,222,128,0.16);
+  background: rgba(74,222,128,0.06);
+  color: var(--green);
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s, color 0.2s;
+}
+
+.endpoint-copy-button:hover {
+  border-color: rgba(74,222,128,0.28);
+  background: rgba(74,222,128,0.1);
+  color: #86efac;
+}
+
+.endpoint-copy-button:disabled {
+  cursor: default;
+  opacity: 0.75;
+}
+
+.endpoint-copy-feedback {
+  min-height: 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+  color: var(--green);
 }
 
 /* ── Workspace Header ── */
@@ -1549,6 +1628,7 @@ textarea:focus-visible {
     position: relative;
     top: 0;
     height: auto;
+    overflow-y: visible;
   }
 
   .tabs.console-nav {

@@ -100,6 +100,44 @@
             <strong>BYOK</strong>
           </div>
         </div>
+
+        <div class="sidebar-card endpoint-copy-card">
+          <div class="sidebar-card-label">Endpoints</div>
+
+          <div class="endpoint-copy-list">
+            <div class="endpoint-copy-row">
+              <div class="endpoint-copy-meta">
+                <span>OpenAI-compatible</span>
+                <code>http://localhost:8787/v1</code>
+              </div>
+              <button
+                class="endpoint-copy-button"
+                type="button"
+                data-copy-endpoint="http://localhost:8787/v1"
+                aria-label="Copy OpenAI-compatible endpoint URL"
+              >
+                Copy
+              </button>
+            </div>
+
+            <div class="endpoint-copy-row">
+              <div class="endpoint-copy-meta">
+                <span>Anthropic-compatible</span>
+                <code>http://localhost:8787</code>
+              </div>
+              <button
+                class="endpoint-copy-button"
+                type="button"
+                data-copy-endpoint="http://localhost:8787"
+                aria-label="Copy Anthropic-compatible endpoint URL"
+              >
+                Copy
+              </button>
+            </div>
+          </div>
+
+          <div class="endpoint-copy-feedback" id="endpoint-copy-feedback" aria-live="polite"></div>
+        </div>
       </aside>
 
       <!-- Main Workspace -->

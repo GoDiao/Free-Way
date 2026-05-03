@@ -573,6 +573,38 @@ header .subtitle {
   margin-bottom: 0.25rem;
 }
 
+.model-id-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.copy-model-btn {
+  flex-shrink: 0;
+  padding: 0.28rem 0.65rem;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: var(--green);
+  background: rgba(74,222,128,0.06);
+  border: 1px solid rgba(74,222,128,0.18);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.copy-model-btn:hover {
+  background: rgba(74,222,128,0.1);
+  border-color: rgba(74,222,128,0.28);
+  color: #86efac;
+}
+
+.copy-model-btn:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
 .provider-model-id {
   font-size: 0.68rem;
   color: var(--text-muted);

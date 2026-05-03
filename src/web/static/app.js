@@ -428,7 +428,16 @@ function renderModels() {
     <div class="model-item">
       <div class="model-info">
         <div>
-          <div class="model-id">${model.id}</div>
+          <div class="model-id-row">
+            <div class="model-id">${model.id}</div>
+            <button
+              class="copy-model-btn"
+              type="button"
+              data-copy-model-id="${model.id}"
+            >
+              Copy
+            </button>
+          </div>
           <div class="provider-model-id">${model.providers.map(p => `${p.name}: ${p.providerModelId}`).join(' · ')}</div>
         </div>
         <div class="model-provider">${model.providers.length} providers</div>
@@ -440,6 +449,28 @@ function renderModels() {
       </div>
     </div>
   `).join('');
+  setTimeout(() => {
+    list.querySelectorAll('[data-copy-model-id]').forEach(button => {
+      button.addEventListener('click', async () => {
+        const modelId = button.getAttribute('data-copy-model-id');
+        const originalText = button.textContent;
+
+        button.disabled = true;
+
+        try {
+          await copyText(modelId);
+          button.textContent = 'Copied';
+        } catch {
+          button.textContent = 'Failed';
+        }
+
+        window.setTimeout(() => {
+          button.textContent = originalText;
+          button.disabled = false;
+        }, 1200);
+      });
+    });
+  }, 0);
 }
 
 function renderKeys() {

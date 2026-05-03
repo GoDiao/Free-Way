@@ -49,6 +49,39 @@ function formatLatency(ms) {
   return `${ms} ms`;
 }
 
+function extractOpenAIStreamContent(eventText) {
+  let content = '';
+
+  for (const line of eventText.split(/\r?\n/)) {
+    if (!line.startsWith('data:')) continue;
+
+    const data = line.slice(5).trimStart();
+    if (!data || data === '[DONE]') continue;
+
+    try {
+      const payload = JSON.parse(data);
+      const delta = payload.choices?.[0]?.delta?.content;
+      if (typeof delta === 'string') {
+        content += delta;
+      }
+    } catch {
+      // Ignore malformed stream events and continue displaying valid deltas.
+    }
+  }
+
+  return content;
+}
+
+function readOpenAIStreamEvents(buffer, flush = false) {
+  const events = buffer.split(/(?:\r?\n){2}/);
+  const pending = flush ? '' : events.pop() ?? '';
+
+  return {
+    text: events.map(extractOpenAIStreamContent).join(''),
+    pending,
+  };
+}
+
 function getRouteMeta(stateKey) {
   const meta = {
     healthy: {
@@ -588,15 +621,33 @@ async function sendTestRequest() {
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
+      let streamBuffer = '';
       let full = '';
       resultContent.textContent = '';
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        const chunk = decoder.decode(value, { stream: true });
-        full += chunk;
-        resultContent.textContent = full;
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          streamBuffer += decoder.decode(value, { stream: true });
+          const parsed = readOpenAIStreamEvents(streamBuffer);
+          streamBuffer = parsed.pending;
+
+          if (parsed.text) {
+            full += parsed.text;
+            resultContent.textContent = full;
+          }
+        }
+
+        streamBuffer += decoder.decode();
+        const parsed = readOpenAIStreamEvents(streamBuffer, true);
+        if (parsed.text) {
+          full += parsed.text;
+          resultContent.textContent = full;
+        }
+      } finally {
+        reader.releaseLock();
       }
     } else {
       const response = await fetch('/v1/chat/completions', {

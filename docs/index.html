@@ -4,14 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Free-Way — Local AI Gateway</title>
-<meta name="description" content="Free-Way is a local control plane for free LLM APIs. Bring your own keys, route across providers, expose OpenAI/Anthropic-compatible endpoints.">
+<meta name="description" content="Free-Way is one localhost gateway for the free LLM APIs you already have keys for. Bring your own keys, route across providers, expose OpenAI/Anthropic-compatible endpoints.">
 <meta property="og:title" content="Free-Way — Local AI Gateway">
-<meta property="og:description" content="A local control plane for free LLM APIs. Bring your own keys, route across free providers, and expose OpenAI/Anthropic-compatible APIs.">
+<meta property="og:description" content="One localhost gateway for the free LLM APIs you already have keys for. Bring your own keys, route across free providers, and expose OpenAI/Anthropic-compatible APIs.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://godiao.github.io/Free-Way/">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Free-Way — Local AI Gateway">
-<meta name="twitter:description" content="A local control plane for free LLM APIs.">
+<meta name="twitter:description" content="One localhost gateway for the free LLM APIs you already have keys for.">
 <script>document.documentElement.classList.add('js');</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -673,7 +673,7 @@
       <a href="#providers">Providers</a>
       <a href="#agents">Agents</a>
     </div>
-    <a href="https://github.com/GoDiao/Free-Way" class="nav-cta" target="_blank" rel="noopener">GitHub ↗</a>
+    <a href="https://github.com/GoDiao/Free-Way" class="nav-cta" target="_blank" rel="noopener">Star on GitHub</a>
   </div>
 </nav>
 
@@ -688,15 +688,15 @@
         <h1 class="reveal reveal-d1">Free-Way</h1>
         <p class="tagline reveal reveal-d1">Local LLM Control Plane</p>
         <p class="subtitle reveal reveal-d2">
-          Route free LLM APIs through one local control plane.
+          One localhost gateway for the free LLM APIs you already have keys for.
         </p>
         <p class="subtitle-cn reveal reveal-d2">
-          通过一个本地控制平面，路由多个免费 LLM API。
+          把你已有 Key 的免费 LLM API，收敛到一个 localhost 网关。
         </p>
         <p class="hero-desc reveal reveal-d2">
           Bring your own provider keys. Free-Way discovers models, normalizes
           OpenAI / Anthropic protocols, routes requests, and falls back across
-          compatible providers — all from localhost.
+          compatible providers. No hosted proxy, no shared quota pool.
         </p>
 
         <div class="hero-pills reveal reveal-d3">
@@ -708,12 +708,13 @@
 
         <div class="cta-group reveal reveal-d3">
           <a href="#quickstart" class="cta-primary">Quick Start →</a>
-          <a href="https://github.com/GoDiao/Free-Way" class="cta-secondary" target="_blank" rel="noopener">View on GitHub</a>
+          <a href="https://github.com/GoDiao/Free-Way" class="cta-secondary" target="_blank" rel="noopener">Star on GitHub</a>
         </div>
 
         <div class="hero-terminal reveal reveal-d4" id="quickstart">
           <button class="copy-btn" type="button" aria-label="Copy quick start command">Copy</button>
-          <pre>git clone https://github.com/GoDiao/Free-Way.git && cd Free-Way
+          <pre>git clone https://github.com/GoDiao/Free-Way.git
+cd Free-Way
 npm install && npm run build && npm start</pre>
         </div>
       </div>
@@ -1057,7 +1058,8 @@ npm install && npm run build && npm start</pre>
   });
 
   // Copy button — pure command, no comments
-  const quickStartCommand = `git clone https://github.com/GoDiao/Free-Way.git && cd Free-Way
+  const quickStartCommand = `git clone https://github.com/GoDiao/Free-Way.git
+cd Free-Way
 npm install && npm run build && npm start`;
   document.querySelectorAll('.copy-btn').forEach(btn => {
     btn.addEventListener('click', () => {

@@ -4,6 +4,7 @@ const state = {
   healthSummary: null,
   syncMetas: {},
   usageRecords: [],
+  lastRefreshResult: null,
 };
 
 const healthLabels = {
@@ -80,6 +81,11 @@ function readOpenAIStreamEvents(buffer, flush = false) {
     text: events.map(extractOpenAIStreamContent).join(''),
     pending,
   };
+}
+
+function formatProviderNames(names) {
+  if (!Array.isArray(names) || names.length === 0) return 'none';
+  return names.join(', ');
 }
 
 function getRouteMeta(stateKey) {
@@ -528,14 +534,25 @@ function renderSyncMeta() {
   if (!root) return;
   const metas = state.syncMetas;
   const entries = Object.entries(metas);
+  const refreshResult = state.lastRefreshResult;
+  const refreshSummary = refreshResult
+    ? `Last refresh: ${refreshResult.refreshed?.length ?? 0} refreshed, ${refreshResult.skipped?.length ?? 0} skipped, ${refreshResult.failed?.length ?? 0} failed`
+    : '';
+
+  const details = refreshResult && ((refreshResult.skipped?.length ?? 0) > 0 || (refreshResult.failed?.length ?? 0) > 0)
+    ? `Skipped: ${formatProviderNames(refreshResult.skipped)} · Failed: ${formatProviderNames(refreshResult.failed)}`
+    : '';
+
+  const prefix = [refreshSummary, details].filter(Boolean).join(' · ');
   if (entries.length === 0) {
-    root.textContent = 'Models: using built-in lists';
+    root.textContent = [prefix, 'Models: using built-in lists'].filter(Boolean).join(' · ');
     return;
   }
-  root.innerHTML = entries.map(([name, meta]) => {
+  const metaHtml = entries.map(([name, meta]) => {
     const sourceLabel = meta.source === 'api' ? 'live' : 'cached';
     return `<span>${name}: ${sourceLabel} @ ${formatTime(meta.updatedAt)}</span>`;
   }).join(' · ');
+  root.innerHTML = [prefix ? `<span>${escapeHtml(prefix)}</span>` : '', metaHtml].filter(Boolean).join(' · ');
 }
 
 async function loadUsage() {
@@ -829,7 +846,7 @@ function bindEvents() {
     try {
       button.disabled = true;
       button.textContent = 'Syncing...';
-      await fetchJSON('/api/models/refresh', { method: 'POST' });
+      state.lastRefreshResult = await fetchJSON('/api/models/refresh', { method: 'POST' });
       await loadCatalog();
     } catch (error) {
       alert(error.message);

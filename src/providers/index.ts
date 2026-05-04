@@ -253,6 +253,14 @@ import { fetchZenMuxModels, mergeZenMuxWithAllowlist } from '../models/zenmux-sy
 
 const syncMeta = new Map<string, { updatedAt: number; source: string }>();
 
+type ProviderSyncStatus = 'refreshed' | 'skipped';
+
+export interface RefreshAllProviderModelsResult {
+  refreshed: string[];
+  failed: string[];
+  skipped: string[];
+}
+
 export function getProviderSyncMeta(providerName: string): { updatedAt: number; source: string } | undefined {
   return syncMeta.get(providerName);
 }
@@ -261,9 +269,9 @@ export function getAllSyncMetas(): Map<string, { updatedAt: number; source: stri
   return new Map(syncMeta);
 }
 
-async function syncProviderModels(provider: BaseProvider): Promise<void> {
+async function syncProviderModels(provider: BaseProvider): Promise<ProviderSyncStatus> {
   const apiKey = provider.apiKey;
-  if (!apiKey) return;
+  if (!apiKey) return 'skipped';
 
   if (provider.name === 'openrouter') {
     try {
@@ -281,7 +289,7 @@ async function syncProviderModels(provider: BaseProvider): Promise<void> {
         console.log(`[${provider.name}] Fell back to cached ${cached.models.length} models`);
       }
     }
-    return;
+    return 'refreshed';
   }
 
   if (provider.name === 'cohere') {
@@ -305,7 +313,7 @@ async function syncProviderModels(provider: BaseProvider): Promise<void> {
         console.log(`[${provider.name}] Fell back to cached ${cached.models.length} models`);
       }
     }
-    return;
+    return 'refreshed';
   }
 
   if (provider.name === 'github') {
@@ -329,14 +337,14 @@ async function syncProviderModels(provider: BaseProvider): Promise<void> {
         console.log(`[${provider.name}] Fell back to cached ${cached.models.length} models`);
       }
     }
-    return;
+    return 'refreshed';
   }
 
   if (provider.name === 'cloudflare') {
     const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
     if (!accountId) {
       console.warn(`[${provider.name}] Missing CLOUDFLARE_ACCOUNT_ID environment variable`);
-      return;
+      return 'skipped';
     }
     try {
       const fetched = await fetchCloudflareModels(apiKey, accountId);
@@ -358,7 +366,7 @@ async function syncProviderModels(provider: BaseProvider): Promise<void> {
         console.log(`[${provider.name}] Fell back to cached ${cached.models.length} models`);
       }
     }
-    return;
+    return 'refreshed';
   }
 
   if (provider.name === 'opencode') {
@@ -377,7 +385,7 @@ async function syncProviderModels(provider: BaseProvider): Promise<void> {
         console.log(`[${provider.name}] Fell back to cached ${cached.models.length} models`);
       }
     }
-    return;
+    return 'refreshed';
   }
 
   if (provider.name === 'zenmux') {
@@ -401,7 +409,7 @@ async function syncProviderModels(provider: BaseProvider): Promise<void> {
         console.log(`[${provider.name}] Fell back to cached ${cached.models.length} models`);
       }
     }
-    return;
+    return 'refreshed';
   }
 
   // Generic OpenAI-compatible provider
@@ -425,6 +433,7 @@ async function syncProviderModels(provider: BaseProvider): Promise<void> {
       console.log(`[${provider.name}] Fell back to cached ${cached.models.length} models`);
     }
   }
+  return 'refreshed';
 }
 
 export async function loadAllModelCaches(): Promise<void> {
@@ -477,18 +486,23 @@ export async function loadAllModelCaches(): Promise<void> {
   }
 }
 
-export async function refreshAllProviderModels(): Promise<{ refreshed: string[]; failed: string[] }> {
+export async function refreshAllProviderModels(): Promise<RefreshAllProviderModelsResult> {
   const refreshed: string[] = [];
   const failed: string[] = [];
+  const skipped: string[] = [];
 
   for (const provider of providers) {
     try {
-      await syncProviderModels(provider);
-      refreshed.push(provider.name);
+      const status = await syncProviderModels(provider);
+      if (status === 'skipped') {
+        skipped.push(provider.name);
+      } else {
+        refreshed.push(provider.name);
+      }
     } catch {
       failed.push(provider.name);
     }
   }
 
-  return { refreshed, failed };
+  return { refreshed, failed, skipped };
 }

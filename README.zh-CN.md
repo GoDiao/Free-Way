@@ -30,6 +30,10 @@
 </p>
 
 <p align="center">
+  <img src="./Assets/routing_map_readme.gif" alt="Free-Way 路由示意图：AI 客户端连接到 localhost:8787，再路由到免费额度 LLM Provider" width="900" />
+</p>
+
+<p align="center">
   <a href="./README.md">English</a>
   ·
   <a href="./CONTRIBUTING.md">Contributing</a>
@@ -43,6 +47,7 @@
 - **BYOK，本地优先**：Free-Way 不托管代理、不共享 Key 池、不售卖 API 访问；Provider Key 留在你的机器上
 - **同时兼容 OpenAI 和 Anthropic**：支持 `/v1/chat/completions`、`/v1/models` 和 `/v1/messages`
 - **自动回退路由**：某个兼容 Provider 限流或不可用时，可以尝试其他可用路由
+- **持续跟踪免费路由变化**：免费额度、模型可用性和兼容细节经常变化；Free-Way 的目标是持续吸收这些变化
 - **自带本地控制台**：在浏览器里配置 Key、浏览模型、刷新目录、检查健康状态、测试请求
 
 > Free-Way 不提供免费 API 访问。它帮你把自己已有的免费额度或 Provider Key，统一管理成一个本地 API 面。

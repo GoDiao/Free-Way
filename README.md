@@ -30,6 +30,10 @@
 </p>
 
 <p align="center">
+  <img src="./Assets/routing_map_readme.gif" alt="Free-Way routing map: AI clients connect to localhost:8787, then route across free-tier LLM providers" width="900" />
+</p>
+
+<p align="center">
   <a href="./README.zh-CN.md">简体中文</a>
   ·
   <a href="./CONTRIBUTING.md">Contributing</a>
@@ -43,6 +47,7 @@
 - **BYOK and local-first**: Free-Way does not host a proxy, pool keys, or sell API access; provider keys stay on your machine
 - **OpenAI + Anthropic compatibility**: use `/v1/chat/completions`, `/v1/models`, and `/v1/messages`
 - **Fallback routing**: when one compatible provider is rate-limited or unavailable, Free-Way can try another route
+- **Tracks changing free-tier routes**: provider quotas, model availability, and compatibility quirks change often; Free-Way is designed to keep absorbing those updates
 - **Provider console included**: configure keys, browse models, refresh catalogs, check health, and test requests from the browser
 
 > Free-Way does not provide free API access. It helps you operate the free-tier/provider keys you already have behind one local API surface.

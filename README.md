@@ -88,6 +88,12 @@ These are ecosystem references, not hard dependencies. They help guide ongoing p
 - Refresh model catalogs
 - Test local requests from the browser
 
+## Provider Setup Guides
+
+See the [docs/providers/](docs/providers/) directory for per-provider setup instructions:
+
+- [Cloudflare Workers AI](docs/providers/cloudflare.md) — requires `CLOUDFLARE_API_KEY` + `CLOUDFLARE_ACCOUNT_ID`
+
 ## Supported Providers
 
 Currently wired through `src/providers/index.ts`:

@@ -1,11 +1,26 @@
-<p align="center">
-  <img src="Assets/Head.png" alt="Free-Way 头图" width="960" />
-</p>
-
 <h1 align="center">Free-Way</h1>
 
 <p align="center">
   <strong>把你已有 Key 的免费 LLM API，收敛到一个 localhost 网关。</strong>
+</p>
+
+<p align="center">
+  <strong>Star us&nbsp;→</strong>
+  <a href="https://github.com/GoDiao/Free-Way" title="Star Free-Way on GitHub">
+    <img src="https://img.shields.io/github/stars/GoDiao/Free-Way?style=for-the-badge&logo=github&label=Star&color=4ade80&labelColor=0b0f0d" alt="Star Free-Way on GitHub" height="28" align="absmiddle" />
+  </a>
+  &nbsp;·&nbsp;
+  <a href="https://godiao.github.io/Free-Way/" title="打开 Free-Way 项目页面">
+    <img src="https://img.shields.io/badge/Homepage-Free--Way-4ade80?style=for-the-badge&labelColor=0b0f0d" alt="Free-Way 项目页面" height="28" align="absmiddle" />
+  </a>
+  &nbsp;·&nbsp;
+  <a href="./docs/agents/" title="阅读 Free-Way Agent 配置指南">
+    <img src="https://img.shields.io/badge/Agent%20Guides-Docs-60a5fa?style=for-the-badge&labelColor=0b0f0d" alt="Free-Way Agent 配置指南" height="28" align="absmiddle" />
+  </a>
+  &nbsp;·&nbsp;
+  <a href="./LICENSE" title="Free-Way 使用 MIT 许可证">
+    <img src="https://img.shields.io/badge/License-MIT-f0a500?style=for-the-badge&labelColor=0b0f0d" alt="MIT License" height="28" align="absmiddle" />
+  </a>
 </p>
 
 <p align="center">
@@ -15,9 +30,11 @@
 </p>
 
 <p align="center">
-  <a href="./README.md">English</a> ·
-  <a href="./CONTRIBUTING.md">Contributing (EN)</a> ·
-  <a href="./contribution.md">贡献指南 (中文)</a>
+  <a href="./README.md">English</a>
+  ·
+  <a href="./CONTRIBUTING.md">Contributing</a>
+  ·
+  <a href="./contribution.md">中文贡献指南</a>
 </p>
 
 ## 为什么值得 Star

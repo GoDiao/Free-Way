@@ -203,6 +203,7 @@ const server = http.createServer(async (req, res) => {
         ok: true,
         refreshed: result.refreshed,
         failed: result.failed,
+        skipped: result.skipped,
         syncedAt: Date.now(),
       });
       return;
@@ -544,6 +545,9 @@ export async function startServer() {
     console.log(`[Sync] Refreshed: ${result.refreshed.join(', ')}`);
     if (result.failed.length) {
       console.warn(`[Sync] Failed: ${result.failed.join(', ')}`);
+    }
+    if (result.skipped.length) {
+      console.log(`[Sync] Skipped: ${result.skipped.join(', ')}`);
     }
   }).catch((err) => {
     console.error('[Sync] Background refresh failed:', err instanceof Error ? err.message : String(err));

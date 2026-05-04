@@ -554,7 +554,7 @@ export async function startServer() {
   });
 
   server.listen(PORT, () => {
-    console.log(`Freeway running on http://localhost:${PORT}`);
+    console.log(`Free-Way running on http://localhost:${PORT}`);
     console.log(`  GET  /`);
     console.log(`  GET  /api/catalog`);
     console.log(`  GET  /api/usage`);

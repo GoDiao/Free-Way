@@ -1,15 +1,17 @@
 <p align="center">
-  <img src="Assets/Head.png" alt="Freeway header" width="960" />
+  <img src="Assets/Head.png" alt="Free-Way header" width="960" />
 </p>
 
-<h1 align="center">Freeway</h1>
+<h1 align="center">Free-Way</h1>
 
 <p align="center">
-  <strong>A local control plane for free LLM APIs.</strong>
+  <strong>One localhost gateway for the free LLM APIs you already have keys for.</strong>
 </p>
 
 <p align="center">
-  Freeway is an open-source gateway that aggregates the fast-moving free LLM ecosystem behind a unified local API surface. Bring your own keys — Freeway normalizes OpenAI/Anthropic protocols, routes requests, and falls back across providers. All from localhost.
+  Bring your own provider keys. Free-Way exposes OpenAI- and Anthropic-compatible endpoints,
+  discovers models, routes requests, and falls back across compatible free-tier providers.
+  Your tools keep one base URL: <code>http://localhost:8787</code>.
 </p>
 
 <p align="center">
@@ -18,9 +20,56 @@
   <a href="./contribution.md">贡献指南 (中文)</a>
 </p>
 
+## Why Star This
+
+- **One local endpoint for AI tools**: point Claude Code, Cursor, Continue.dev, OpenCode, or any compatible client at the same gateway
+- **BYOK and local-first**: Free-Way does not host a proxy, pool keys, or sell API access; provider keys stay on your machine
+- **OpenAI + Anthropic compatibility**: use `/v1/chat/completions`, `/v1/models`, and `/v1/messages`
+- **Fallback routing**: when one compatible provider is rate-limited or unavailable, Free-Way can try another route
+- **Provider console included**: configure keys, browse models, refresh catalogs, check health, and test requests from the browser
+
+> Free-Way does not provide free API access. It helps you operate the free-tier/provider keys you already have behind one local API surface.
+
+## Quick Start
+
+### 1. Install and launch
+
+```bash
+git clone https://github.com/GoDiao/Free-Way.git
+cd Free-Way
+npm install
+npm run build
+npm start
+```
+
+Default server address:
+
+- `http://localhost:8787`
+
+### 2. Configure provider keys
+
+Open the local console:
+
+- `http://localhost:8787/`
+
+Then configure provider keys in the **API Keys** tab, or provide them with environment variables.
+
+### 3. Point your agent at Free-Way
+
+- OpenAI-compatible clients: `http://localhost:8787/v1`
+- Anthropic-compatible clients: `http://localhost:8787`
+
+Detailed per-agent setup guides are available in [`docs/agents/`](./docs/agents/).
+
+## Supported Providers
+
+Currently wired through `src/providers/index.ts`:
+
+`openrouter`, `groq`, `github`, `cloudflare`, `siliconflow`, `cerebras`, `mistral`, `cohere`, `nvidia`, `llm7`, `kilo`, `zhipu`, `opencode`, `zenmux`
+
 ## Mission
 
-Freeway is a local control plane for free LLM APIs. It normalizes protocol differences, resolves models, checks route availability, and falls back when a provider fails — all from localhost.
+Free-Way is a local control plane for free LLM APIs. It normalizes protocol differences, resolves models, checks route availability, and falls back when a provider fails — all from localhost.
 
 The goal is not to wrap one provider. The goal is to offer one gateway layer that can keep absorbing the providers, models, and compatibility quirks that matter across the free-model ecosystem.
 
@@ -33,12 +82,12 @@ The free-model ecosystem is expanding quickly, but the developer experience is s
 - free tiers appear, move, rate-limit, or disappear
 - clients and coding agents still want one predictable local endpoint
 
-Freeway compresses that fragmentation into a single local gateway that is easier to operate, easier to integrate, and easier to extend.
+Free-Way compresses that fragmentation into a single local gateway that is easier to operate, easier to integrate, and easier to extend.
 
-## What Freeway provides
+## What Free-Way Provides
 
 - **Protocol normalization** — OpenAI and Anthropic compatible endpoints from one server
-- **Fallback routing** — when a provider is rate-limited or unavailable, Freeway tries another
+- **Fallback routing** — when a provider is rate-limited or unavailable, Free-Way tries another
 - **Model discovery** — fetch available models from supported providers and keep a unified free-tier catalog updated
 - **Runtime API key management** — configure provider keys through the web UI or REST API, no restart required
 - **Health checks** — monitor provider availability and latency from the console
@@ -47,7 +96,7 @@ Freeway compresses that fragmentation into a single local gateway that is easier
 
 ## Coverage philosophy
 
-Freeway is not positioned as a thin wrapper for one API vendor.
+Free-Way is not positioned as a thin wrapper for one API vendor.
 
 It is an aggregation layer designed to keep up with the free LLM landscape over time. That means tracking useful providers, normalizing compatibility gaps, and making the resulting surface more stable for local tools, scripts, and agent workflows.
 
@@ -55,7 +104,7 @@ The ambition is broad coverage. The implementation stays pragmatic: integrate wh
 
 ## Ecosystem references
 
-Freeway tracks the broader free-model ecosystem through public resource collections, including:
+Free-Way tracks the broader free-model ecosystem through public resource collections, including:
 
 - [awesome-free-llm-apis](https://github.com/mnfst/awesome-free-llm-apis)
 - [free-llm-api-resources](https://github.com/cheahjs/free-llm-api-resources)
@@ -88,44 +137,11 @@ These are ecosystem references, not hard dependencies. They help guide ongoing p
 - Refresh model catalogs
 - Test local requests from the browser
 
-## Supported Providers
-
-Currently wired through `src/providers/index.ts`:
-
-`openrouter`, `groq`, `github`, `cloudflare`, `siliconflow`, `cerebras`, `mistral`, `cohere`, `nvidia`, `llm7`, `kilo`, `zhipu`, `opencode`
-
-## Quick Start
-
-### 1. Prerequisites
-
-- Node.js 18+
-- npm
-
-### 2. Install and launch
-
-```bash
-npm install
-npm run build
-npm start
-```
-
-Default server address:
-
-- `http://localhost:8787`
-
-### 3. Open the console
-
-Visit:
-
-- `http://localhost:8787/`
-
-Then configure provider keys in the **API Keys** tab, or provide them with environment variables.
-
 ## Configuration
 
 ## Configure your agent
 
-Freeway exposes **both** OpenAI and Anthropic compatible endpoints, so most coding agents and LLM clients can connect directly.
+Free-Way exposes **both** OpenAI and Anthropic compatible endpoints, so most coding agents and LLM clients can connect directly.
 
 > Detailed per-agent setup guides are available in [`docs/agents/`](./docs/agents/).
 
@@ -134,14 +150,14 @@ Freeway exposes **both** OpenAI and Anthropic compatible endpoints, so most codi
 
 ### Claude Code
 
-Set the base URL to Freeway:
+Set the base URL to Free-Way:
 
 ```bash
 export ANTHROPIC_BASE_URL=http://localhost:8787
 export ANTHROPIC_API_KEY=<your FREEWAY_API_KEY or any non-empty string>
 ```
 
-Then run `claude` normally. Freeway routes Claude Code's Anthropic API calls to the best available free provider.
+Then run `claude` normally. Free-Way routes Claude Code's Anthropic API calls to the best available free provider.
 
 ### Cursor
 
@@ -157,7 +173,7 @@ In `config.json`:
 {
   "models": [
     {
-      "title": "Freeway",
+      "title": "Free-Way",
       "provider": "openai",
       "model": "llama-3.3-70b",
       "apiBase": "http://localhost:8787/v1",
@@ -192,7 +208,7 @@ Effective key precedence is:
 
 | Variable | Purpose |
 |---|---|
-| `FREEWAY_API_KEY` | Optional gateway auth key for clients calling Freeway |
+| `FREEWAY_API_KEY` | Optional gateway auth key for clients calling Free-Way |
 | `OPENROUTER_API_KEY` | OpenRouter key |
 | `GROQ_API_KEY` | Groq key |
 | `GITHUB_TOKEN` | GitHub Models token |
@@ -219,7 +235,7 @@ curl http://localhost:8787/v1/chat/completions \
   -H "Authorization: Bearer $FREEWAY_API_KEY" \
   -d '{
     "model": "llama-3.3-70b",
-    "messages": [{"role": "user", "content": "Say hello from Freeway"}],
+    "messages": [{"role": "user", "content": "Say hello from Free-Way"}],
     "stream": false
   }'
 ```
@@ -251,7 +267,7 @@ For Anthropic-compatible clients that let you override the base URL, point them 
 
 - `http://localhost:8787`
 
-Freeway serves the compatibility routes under that origin.
+Free-Way serves the compatibility routes under that origin.
 
 ## HTTP Endpoints
 

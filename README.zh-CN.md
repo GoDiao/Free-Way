@@ -1,15 +1,17 @@
 <p align="center">
-  <img src="Assets/Head.png" alt="Freeway 头图" width="960" />
+  <img src="Assets/Head.png" alt="Free-Way 头图" width="960" />
 </p>
 
-<h1 align="center">Freeway</h1>
+<h1 align="center">Free-Way</h1>
 
 <p align="center">
-  <strong>一个免费 LLM API 的本地控制平面。</strong>
+  <strong>把你已有 Key 的免费 LLM API，收敛到一个 localhost 网关。</strong>
 </p>
 
 <p align="center">
-  Freeway 是一个开源网关，在快速变化的免费 LLM 生态之上提供统一的本地 API 聚合层。自备 Key — Freeway 自动归一化 OpenAI/Anthropic 协议、路由请求，并在 Provider 之间自动回退。一切都在 localhost。
+  自备 Provider Key。Free-Way 暴露 OpenAI / Anthropic 兼容接口，
+  负责模型发现、请求路由和兼容 Provider 间的自动回退。
+  你的工具只需要一个 base URL：<code>http://localhost:8787</code>。
 </p>
 
 <p align="center">
@@ -18,13 +20,60 @@
   <a href="./contribution.md">贡献指南 (中文)</a>
 </p>
 
+## 为什么值得 Star
+
+- **一个本地入口接入 AI 工具**：Claude Code、Cursor、Continue.dev、OpenCode 或任何兼容客户端，都可以指向同一个网关
+- **BYOK，本地优先**：Free-Way 不托管代理、不共享 Key 池、不售卖 API 访问；Provider Key 留在你的机器上
+- **同时兼容 OpenAI 和 Anthropic**：支持 `/v1/chat/completions`、`/v1/models` 和 `/v1/messages`
+- **自动回退路由**：某个兼容 Provider 限流或不可用时，可以尝试其他可用路由
+- **自带本地控制台**：在浏览器里配置 Key、浏览模型、刷新目录、检查健康状态、测试请求
+
+> Free-Way 不提供免费 API 访问。它帮你把自己已有的免费额度或 Provider Key，统一管理成一个本地 API 面。
+
+## 快速开始
+
+### 1. 安装并启动
+
+```bash
+git clone https://github.com/GoDiao/Free-Way.git
+cd Free-Way
+npm install
+npm run build
+npm start
+```
+
+默认服务地址：
+
+- `http://localhost:8787`
+
+### 2. 配置 Provider Key
+
+打开本地控制台：
+
+- `http://localhost:8787/`
+
+然后在 **API Keys** 页面配置 Provider Key，或直接通过环境变量提供。
+
+### 3. 把你的 Agent 指向 Free-Way
+
+- OpenAI 兼容客户端：`http://localhost:8787/v1`
+- Anthropic 兼容客户端：`http://localhost:8787`
+
+各 Agent 的详细配置指南请参考 [`docs/agents/`](./docs/agents/) 目录。
+
+## 已支持 Provider
+
+当前在 `src/providers/index.ts` 中接入：
+
+`openrouter`、`groq`、`github`、`cloudflare`、`siliconflow`、`cerebras`、`mistral`、`cohere`、`nvidia`、`llm7`、`kilo`、`zhipu`、`opencode`、`zenmux`
+
 ## 项目使命
 
-Freeway 是一个面向免费 LLM API 的本地控制平面。它归一化协议差异、解析模型、检查路由可用性，并在 Provider 失败时自动回退 — 一切都在 localhost。
+Free-Way 是一个面向免费 LLM API 的本地控制平面。它归一化协议差异、解析模型、检查路由可用性，并在 Provider 失败时自动回退 — 一切都在 localhost。
 
 目标不是只包一层单一 Provider，而是提供一个网关层，持续吸收真正重要的 Provider、模型能力和兼容性差异，把这些差异收敛成更稳定的本地调用入口。
 
-## 为什么要做 Freeway
+## 为什么要做 Free-Way
 
 免费模型生态增长很快，但开发体验依然高度碎片化：
 
@@ -33,9 +82,9 @@ Freeway 是一个面向免费 LLM API 的本地控制平面。它归一化协议
 - 免费额度、访问限制和稳定性不断变化
 - 脚本、Agent 和本地工具依然希望只有一个可靠的 base URL
 
-Freeway 把这种碎片化压缩进一个更易接入、更易运维、也更易扩展的本地网关。
+Free-Way 把这种碎片化压缩进一个更易接入、更易运维、也更易扩展的本地网关。
 
-## Freeway 提供什么
+## Free-Way 提供什么
 
 - **协议归一化** — 同一服务同时暴露 OpenAI 与 Anthropic 兼容接口
 - **回退路由** — Provider 限流或不可用时，自动尝试其他兼容 Provider
@@ -47,7 +96,7 @@ Freeway 把这种碎片化压缩进一个更易接入、更易运维、也更易
 
 ## Coverage 理念
 
-Freeway 不把自己定位成某一个 API Vendor 的薄包装。
+Free-Way 不把自己定位成某一个 API Vendor 的薄包装。
 
 它是一个聚合层，目标是持续跟上免费 LLM 生态的变化：追踪有价值的 Provider，抹平兼容性差异，并把最终暴露给本地工具、脚本和 Agent 的接口做得更稳定。
 
@@ -55,12 +104,12 @@ Freeway 不把自己定位成某一个 API Vendor 的薄包装。
 
 ## 生态信息源
 
-Freeway 会持续参考公开的免费模型生态资源，包括：
+Free-Way 会持续参考公开的免费模型生态资源，包括：
 
 - [awesome-free-llm-apis](https://github.com/mnfst/awesome-free-llm-apis)
 - [free-llm-api-resources](https://github.com/cheahjs/free-llm-api-resources)
 
-这些是生态参考信息源，不是项目依赖。它们帮助 Freeway 持续判断应该跟踪哪些 Provider、模型和兼容性方向。
+这些是生态参考信息源，不是项目依赖。它们帮助 Free-Way 持续判断应该跟踪哪些 Provider、模型和兼容性方向。
 
 ## 当前能力
 
@@ -88,57 +137,24 @@ Freeway 会持续参考公开的免费模型生态资源，包括：
 - 刷新模型目录
 - 在浏览器里测试本地请求
 
-## 已支持 Provider
-
-当前在 `src/providers/index.ts` 中接入：
-
-`openrouter`、`groq`、`github`、`cloudflare`、`siliconflow`、`cerebras`、`mistral`、`cohere`、`nvidia`、`llm7`、`kilo`、`zhipu`、`opencode`
-
-## 快速开始
-
-### 1. 环境要求
-
-- Node.js 18+
-- npm
-
-### 2. 安装并启动
-
-```bash
-npm install
-npm run build
-npm start
-```
-
-默认服务地址：
-
-- `http://localhost:8787`
-
-### 3. 打开控制台
-
-访问：
-
-- `http://localhost:8787/`
-
-然后在 **API Keys** 页面配置 Provider Key，或直接通过环境变量提供。
-
 ## 配置说明
 
 ## 配置你的 Agent
 
-Freeway 同时暴露 **OpenAI 和 Anthropic 兼容接口**，绝大多数编程 Agent 和 LLM 客户端都可以直接连接。
+Free-Way 同时暴露 **OpenAI 和 Anthropic 兼容接口**，绝大多数编程 Agent 和 LLM 客户端都可以直接连接。
 
 > 各 Agent 的详细配置指南请参考 [`docs/agents/`](./docs/agents/) 目录。
 
 ### Claude Code
 
-设置 base URL 指向 Freeway：
+设置 base URL 指向 Free-Way：
 
 ```bash
 export ANTHROPIC_BASE_URL=http://localhost:8787
 export ANTHROPIC_API_KEY=<你的 FREEWAY_API_KEY 或任意非空字符串>
 ```
 
-然后正常运行 `claude` 即可。Freeway 会把 Claude Code 的 Anthropic API 调用路由到当前最优的免费 Provider。
+然后正常运行 `claude` 即可。Free-Way 会把 Claude Code 的 Anthropic API 调用路由到当前最优的免费 Provider。
 
 ### Cursor
 
@@ -154,7 +170,7 @@ export ANTHROPIC_API_KEY=<你的 FREEWAY_API_KEY 或任意非空字符串>
 {
   "models": [
     {
-      "title": "Freeway",
+      "title": "Free-Way",
       "provider": "openai",
       "model": "llama-3.3-70b",
       "apiBase": "http://localhost:8787/v1",
@@ -189,7 +205,7 @@ export OPENAI_API_KEY=<你的 FREEWAY_API_KEY>
 
 | 变量名 | 作用 |
 |---|---|
-| `FREEWAY_API_KEY` | 可选，调用 Freeway 时的网关鉴权密钥 |
+| `FREEWAY_API_KEY` | 可选，调用 Free-Way 时的网关鉴权密钥 |
 | `OPENROUTER_API_KEY` | OpenRouter 密钥 |
 | `GROQ_API_KEY` | Groq 密钥 |
 | `GITHUB_TOKEN` | GitHub Models Token |
@@ -216,7 +232,7 @@ curl http://localhost:8787/v1/chat/completions \
   -H "Authorization: Bearer $FREEWAY_API_KEY" \
   -d '{
     "model": "llama-3.3-70b",
-    "messages": [{"role": "user", "content": "请介绍一下 Freeway"}],
+    "messages": [{"role": "user", "content": "请介绍一下 Free-Way"}],
     "stream": false
   }'
 ```
@@ -248,7 +264,7 @@ curl http://localhost:8787/v1/messages \
 
 - `http://localhost:8787`
 
-Freeway 会在这个 origin 下提供兼容路由。
+Free-Way 会在这个 origin 下提供兼容路由。
 
 ## 接口清单
 

@@ -1,8 +1,8 @@
-# Contributing to Freeway
+# Contributing to Free-Way
 
-Thanks for contributing to Freeway.
+Thanks for contributing to Free-Way.
 
-Freeway aims to be a stable, maintainable, and extensible free-LLM gateway. This guide helps keep contributions consistent and review-friendly.
+Free-Way aims to be a stable, maintainable, and extensible free-LLM gateway. This guide helps keep contributions consistent and review-friendly.
 
 ## 1. Ways to Contribute
 

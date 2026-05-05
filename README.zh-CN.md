@@ -228,6 +228,7 @@ export OPENAI_API_KEY=<你的 FREEWAY_API_KEY>
 | 变量名 | 作用 |
 |---|---|
 | `FREEWAY_API_KEY` | 可选，调用 Free-Way 时的网关鉴权密钥 |
+| `FREEWAY_PROVIDER_TIMEOUT_MS` | 可选，出站 Provider 请求超时时间，单位毫秒（默认：`30000`） |
 | `OPENROUTER_API_KEY` | OpenRouter 密钥 |
 | `GROQ_API_KEY` | Groq 密钥 |
 | `GITHUB_TOKEN` | GitHub Models Token |

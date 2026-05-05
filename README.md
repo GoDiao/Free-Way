@@ -232,6 +232,7 @@ Effective key precedence is:
 | Variable | Purpose |
 |---|---|
 | `FREEWAY_API_KEY` | Optional gateway auth key for clients calling Free-Way |
+| `FREEWAY_PROVIDER_TIMEOUT_MS` | Optional outbound provider request timeout in milliseconds (default: `30000`) |
 | `OPENROUTER_API_KEY` | OpenRouter key |
 | `GROQ_API_KEY` | Groq key |
 | `GITHUB_TOKEN` | GitHub Models token |

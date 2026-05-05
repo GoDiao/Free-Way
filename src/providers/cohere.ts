@@ -1,5 +1,6 @@
 import { BaseProvider, type ProviderConfig } from './base.js';
 import type { ChatCompletionRequest, ChatMessage } from '../types.js';
+import { withProviderTimeout } from './timeout.js';
 
 interface CohereMessage {
   role: 'user' | 'assistant' | 'system';
@@ -116,71 +117,77 @@ export class CohereProvider extends BaseProvider {
     if (request.tools) body.tools = request.tools;
     if (request.tool_choice) body.tool_choice = request.tool_choice;
 
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${this.apiKey}`,
-        ...this.customHeaders,
-      },
-      body: JSON.stringify(body),
-    });
+    return withProviderTimeout(
+      { providerName: this.name, operation: 'chat completion' },
+      async (signal) => {
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${this.apiKey}`,
+            ...this.customHeaders,
+          },
+          body: JSON.stringify(body),
+          signal,
+        });
 
-    if (request.stream) {
-      return response;
-    }
+        if (request.stream) {
+          return response;
+        }
 
-    const cohereData = (await response.json()) as CohereChatResponse;
+        const cohereData = (await response.json()) as CohereChatResponse;
 
-    let content = '';
-    if (cohereData.message?.content) {
-      if (typeof cohereData.message.content === 'string') {
-        content = cohereData.message.content;
-      } else {
-        content = cohereData.message.content.map((c) => c.text).join('');
+        let content = '';
+        if (cohereData.message?.content) {
+          if (typeof cohereData.message.content === 'string') {
+            content = cohereData.message.content;
+          } else {
+            content = cohereData.message.content.map((c) => c.text).join('');
+          }
+        } else if (cohereData.text) {
+          content = cohereData.text;
+        }
+
+        const tokens = cohereData.usage?.tokens ?? cohereData.usage?.billed_units;
+        const toolCalls = Array.isArray(cohereData.message?.tool_calls)
+          ? cohereData.message?.tool_calls
+          : undefined;
+
+        const message: Record<string, unknown> = { role: 'assistant', content };
+        if (toolCalls?.length) {
+          message.tool_calls = toolCalls;
+        }
+
+        const finishReason = toolCalls?.length
+          ? 'tool_calls'
+          : cohereData.finish_reason === 'COMPLETE'
+            ? 'stop'
+            : cohereData.finish_reason ?? 'stop';
+
+        const openAIResponse = {
+          id: cohereData.id ?? cohereData.generation_id ?? `cohere-${Date.now()}`,
+          object: 'chat.completion',
+          created: Math.floor(Date.now() / 1000),
+          model: request.model,
+          choices: [
+            {
+              index: 0,
+              message,
+              finish_reason: finishReason,
+            },
+          ],
+          usage: {
+            prompt_tokens: tokens?.input_tokens ?? 0,
+            completion_tokens: tokens?.output_tokens ?? 0,
+            total_tokens: (tokens?.input_tokens ?? 0) + (tokens?.output_tokens ?? 0),
+          },
+        };
+
+        return new Response(JSON.stringify(openAIResponse), {
+          status: response.status,
+          headers: { 'Content-Type': 'application/json' },
+        });
       }
-    } else if (cohereData.text) {
-      content = cohereData.text;
-    }
-
-    const tokens = cohereData.usage?.tokens ?? cohereData.usage?.billed_units;
-    const toolCalls = Array.isArray(cohereData.message?.tool_calls)
-      ? cohereData.message?.tool_calls
-      : undefined;
-
-    const message: Record<string, unknown> = { role: 'assistant', content };
-    if (toolCalls?.length) {
-      message.tool_calls = toolCalls;
-    }
-
-    const finishReason = toolCalls?.length
-      ? 'tool_calls'
-      : cohereData.finish_reason === 'COMPLETE'
-        ? 'stop'
-        : cohereData.finish_reason ?? 'stop';
-
-    const openAIResponse = {
-      id: cohereData.id ?? cohereData.generation_id ?? `cohere-${Date.now()}`,
-      object: 'chat.completion',
-      created: Math.floor(Date.now() / 1000),
-      model: request.model,
-      choices: [
-        {
-          index: 0,
-          message,
-          finish_reason: finishReason,
-        },
-      ],
-      usage: {
-        prompt_tokens: tokens?.input_tokens ?? 0,
-        completion_tokens: tokens?.output_tokens ?? 0,
-        total_tokens: (tokens?.input_tokens ?? 0) + (tokens?.output_tokens ?? 0),
-      },
-    };
-
-    return new Response(JSON.stringify(openAIResponse), {
-      status: response.status,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    );
   }
 }

@@ -1,4 +1,5 @@
 import { providers } from './providers/index.js';
+import { fetchWithProviderTimeout } from './providers/timeout.js';
 
 export type ProviderHealthState = 'missing_key' | 'configured' | 'healthy' | 'unhealthy';
 
@@ -100,19 +101,23 @@ export async function checkProviderHealth(providerName: string): Promise<Provide
     let response: Response;
 
     if (provider.name === 'cohere') {
-      response = await fetch(`${provider.baseURL}/chat`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${provider.apiKey}`,
+      response = await fetchWithProviderTimeout(
+        { providerName: provider.name, operation: 'health check' },
+        `${provider.baseURL}/chat`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${provider.apiKey}`,
+          },
+          body: JSON.stringify({
+            model: sampleModel.providerModelId,
+            messages: [{ role: 'user', content: 'ping' }],
+            max_tokens: 8,
+            temperature: 0,
+          }),
         },
-        body: JSON.stringify({
-          model: sampleModel.providerModelId,
-          messages: [{ role: 'user', content: 'ping' }],
-          max_tokens: 8,
-          temperature: 0,
-        }),
-      });
+      );
     } else {
       response = await provider.chatCompletion({
         model: `${provider.name}/${sampleModel.id}`,

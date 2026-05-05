@@ -1,5 +1,6 @@
 import type { ChatCompletionRequest, ProviderModel } from '../types.js';
 import { getEffectiveApiKey } from '../config.js';
+import { fetchWithProviderTimeout } from './timeout.js';
 
 export interface ProviderConfig {
   name: string;
@@ -54,15 +55,19 @@ export abstract class BaseProvider {
     const url = `${this.baseURL}/chat/completions`;
     const body = this.transformRequest(request);
 
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${this.apiKey}`,
-        ...this.customHeaders,
+    const response = await fetchWithProviderTimeout(
+      { providerName: this.name, operation: 'chat completion' },
+      url,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${this.apiKey}`,
+          ...this.customHeaders,
+        },
+        body: JSON.stringify(body),
       },
-      body: JSON.stringify(body),
-    });
+    );
 
     return response;
   }

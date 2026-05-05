@@ -3,10 +3,32 @@ import { getPersistedConfigPath, loadPersistedConfig, savePersistedConfig } from
 const runtimeApiKeys = new Map<string, string>();
 const persistedApiKeys = new Map<string, string>();
 
+export const DEFAULT_PROVIDER_TIMEOUT_MS = 30_000;
+
+const MAX_PROVIDER_TIMEOUT_MS = 2_147_483_647;
+
 let configMeta: { persistedPath: string | null; persistedUpdatedAt: number | null } = {
   persistedPath: null,
   persistedUpdatedAt: null,
 };
+
+export function resolveProviderTimeoutMs(value: string | number | undefined): number {
+  const raw = typeof value === 'string' ? value.trim() : value;
+  if (raw === undefined || raw === '') {
+    return DEFAULT_PROVIDER_TIMEOUT_MS;
+  }
+
+  const timeoutMs = typeof raw === 'number' ? raw : Number(raw);
+  if (!Number.isSafeInteger(timeoutMs) || timeoutMs <= 0 || timeoutMs > MAX_PROVIDER_TIMEOUT_MS) {
+    return DEFAULT_PROVIDER_TIMEOUT_MS;
+  }
+
+  return timeoutMs;
+}
+
+export function getProviderTimeoutMs(): number {
+  return resolveProviderTimeoutMs(process.env.FREEWAY_PROVIDER_TIMEOUT_MS);
+}
 
 export function setRuntimeApiKey(envVar: string, value: string) {
   const trimmed = value.trim();

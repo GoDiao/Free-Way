@@ -167,6 +167,8 @@ Free-Way exposes **both** OpenAI and Anthropic compatible endpoints, so most cod
 
 > Detailed per-agent setup guides are available in [`docs/agents/`](./docs/agents/).
 
+- [OpenRouter Provider Setup](./docs/providers/openrouter.md)
+- 
 - [OpenCode setup guide](./docs/agents/opencode.md)
 - [Aider Integration Guide](./docs/agents/aider.md)
 

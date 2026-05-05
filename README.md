@@ -43,7 +43,7 @@
 
 ## Why Star This
 
-- **One local endpoint for AI tools**: point Claude Code, Cursor, Continue.dev, OpenCode, or any compatible client at the same gateway
+- **One local endpoint for AI tools**: point Claude Code, Continue.dev, OpenCode, or any client that calls local custom base URLs directly at the same gateway
 - **BYOK and local-first**: Free-Way does not host a proxy, pool keys, or sell API access; provider keys stay on your machine
 - **OpenAI + Anthropic compatibility**: use `/v1/chat/completions`, `/v1/models`, and `/v1/messages`
 - **Fallback routing**: when one compatible provider is rate-limited or unavailable, Free-Way can try another route
@@ -114,7 +114,7 @@ Free-Way compresses that fragmentation into a single local gateway that is easie
 - **Runtime API key management** — configure provider keys through the web UI or REST API, no restart required
 - **Health checks** — monitor provider availability and latency from the console
 - **Local web console** — browse providers and models, check health, configure keys, test requests
-- **Works with Claude Code, Cursor, Continue.dev, OpenCode, and any OpenAI/Anthropic-compatible client**
+- **Works with Claude Code, Continue.dev, OpenCode, and OpenAI/Anthropic-compatible clients that call local custom base URLs directly**
 
 ## Coverage philosophy
 
@@ -183,9 +183,9 @@ Then run `claude` normally. Free-Way routes Claude Code's Anthropic API calls to
 
 ### Cursor
 
-In Cursor Settings → Models → OpenAI API Key:
-- Base URL: `http://localhost:8787/v1`
-- API Key: your `FREEWAY_API_KEY` (or leave empty if gateway auth is off)
+Cursor may not work with a localhost Free-Way endpoint. Some Cursor API flows are proxied through Cursor's servers before calling the configured API. In that setup, `localhost:8787` refers to Cursor's server environment, not your machine.
+
+Free-Way works best with clients that call custom OpenAI/Anthropic-compatible base URLs directly from your local machine.
 
 ### Continue.dev
 

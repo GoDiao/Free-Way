@@ -8,6 +8,7 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "start": "node dist/index.js",
+    "test:compat": "npm run build && node scripts/compat-regression.mjs",
     "test:usage": "npm run build && node scripts/usage-regression.mjs"
   },
   "keywords": [

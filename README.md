@@ -227,6 +227,12 @@ Effective key precedence is:
 2. Environment variable
 3. Persisted `.freeway/config.json`
 
+### Local security model
+
+Free-Way binds to `127.0.0.1` by default. Set `HOST=0.0.0.0` only if you intentionally want LAN access.
+
+Browser CORS is limited to same-machine localhost origins. Management endpoints such as key configuration, model refresh, provider health checks, and usage clearing reject non-local browser origins. If `FREEWAY_API_KEY` is configured, those management endpoints and `/v1/*` API calls must include `Authorization: Bearer <FREEWAY_API_KEY>` or `x-api-key: <FREEWAY_API_KEY>`.
+
 ### Common environment variables
 
 | Variable | Purpose |

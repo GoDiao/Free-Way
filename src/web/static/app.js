@@ -14,6 +14,36 @@ const healthLabels = {
   unhealthy: 'Unhealthy',
 };
 
+const gatewayKeyStorageKey = 'freeway.gatewayKey';
+
+function getStoredGatewayKey() {
+  try {
+    return window.localStorage.getItem(gatewayKeyStorageKey) || '';
+  } catch {
+    return '';
+  }
+}
+
+function setStoredGatewayKey(value) {
+  try {
+    if (value) {
+      window.localStorage.setItem(gatewayKeyStorageKey, value);
+    } else {
+      window.localStorage.removeItem(gatewayKeyStorageKey);
+    }
+  } catch {
+    // Ignore storage failures; users can still rely on environment variables.
+  }
+}
+
+function withGatewayAuthHeaders(headers = {}, gatewayKey = getStoredGatewayKey()) {
+  const nextHeaders = new Headers(headers);
+  if (gatewayKey && !nextHeaders.has('Authorization') && !nextHeaders.has('x-api-key')) {
+    nextHeaders.set('Authorization', `Bearer ${gatewayKey}`);
+  }
+  return nextHeaders;
+}
+
 function escapeHtml(value) {
   return String(value ?? '')
     .replaceAll('&', '&amp;')
@@ -24,10 +54,27 @@ function escapeHtml(value) {
 }
 
 async function fetchJSON(url, options) {
-  const response = await fetch(url, options);
+  const response = await fetch(url, {
+    ...options,
+    headers: withGatewayAuthHeaders(options?.headers ?? {}),
+  });
   if (!response.ok) {
     const payload = await response.json().catch(() => ({}));
     throw new Error(payload.error?.message ?? `Request failed: ${response.status}`);
+  }
+  return response.json();
+}
+
+async function fetchJSONWithGatewayKey(url, options, gatewayKey) {
+  const response = await fetch(url, {
+    ...options,
+    headers: withGatewayAuthHeaders(options?.headers ?? {}, gatewayKey),
+  });
+  if (!response.ok) {
+    const payload = await response.json().catch(() => ({}));
+    const error = new Error(payload.error?.message ?? `Request failed: ${response.status}`);
+    error.status = response.status;
+    throw error;
   }
   return response.json();
 }
@@ -654,11 +701,26 @@ async function saveKeys() {
   const gatewayInput = document.getElementById('gateway-key');
   const gatewayKey = gatewayInput ? gatewayInput.value.trim() : '';
 
-  const result = await fetchJSON('/api/config/keys', {
+  const saveRequest = {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ keys, gatewayKey }),
-  });
+  };
+
+  let result;
+  try {
+    result = await fetchJSON('/api/config/keys', saveRequest);
+  } catch (error) {
+    const storedGatewayKey = getStoredGatewayKey();
+    if (!gatewayKey || gatewayKey === storedGatewayKey || error.status !== 401) {
+      throw error;
+    }
+    result = await fetchJSONWithGatewayKey('/api/config/keys', saveRequest, gatewayKey);
+  }
+
+  if (gatewayInput) {
+    setStoredGatewayKey(gatewayKey);
+  }
 
   alert(`Saved ${result.updated.length} API key(s).`);
   await loadCatalog();
@@ -688,7 +750,7 @@ async function sendTestRequest() {
     if (stream) {
       const response = await fetch('/v1/chat/completions', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: withGatewayAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({
           model,
           messages: [{ role: 'user', content: message }],
@@ -739,7 +801,7 @@ async function sendTestRequest() {
     } else {
       const response = await fetch('/v1/chat/completions', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: withGatewayAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({
           model,
           messages: [{ role: 'user', content: message }],
@@ -859,6 +921,10 @@ function setupTabs() {
 
 function bindEvents() {
   setupEndpointCopyButtons();
+  const gatewayInput = document.getElementById('gateway-key');
+  if (gatewayInput) {
+    gatewayInput.value = getStoredGatewayKey();
+  }
   document.getElementById('model-search').addEventListener('input', renderModels);
   document.getElementById('model-sort').addEventListener('change', renderModels);
   document.getElementById('provider-search').addEventListener('input', renderProviders);

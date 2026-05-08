@@ -1,7 +1,7 @@
 <h1 align="center">Free-Way</h1>
 
 <p align="center">
-  <strong>把你已有 Key 的免费 LLM API，收敛到一个 localhost 网关。</strong>
+  <strong>免费使用 Claude Code、Codex、OpenCode、Cline — 一个网关对接 14+ 免费 LLM 提供商。</strong>
 </p>
 
 <p align="center">

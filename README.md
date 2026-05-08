@@ -1,7 +1,7 @@
 <h1 align="center">Free-Way</h1>
 
 <p align="center">
-  <strong>One localhost gateway for the free LLM APIs you already have keys for.</strong>
+  <strong>Use Claude Code, Codex, OpenCode, Cline for free — one gateway to 14+ free LLM providers.</strong>
 </p>
 
 <p align="center">

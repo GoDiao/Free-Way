@@ -2,7 +2,7 @@ import http from 'http';
 import path from 'path';
 import { readFile } from 'fs/promises';
 import type { ChatCompletionRequest } from './types.js';
-import { routeChatCompletion } from './router.js';
+import { routeChatCompletion as defaultRouteChatCompletion } from './router.js';
 import {
   anthropicStreamStart,
   createAnthropicStreamTransformer,
@@ -35,6 +35,12 @@ const WEB_ROOT = path.resolve(process.cwd(), 'src', 'web');
 const STATIC_ROOT = path.resolve(WEB_ROOT, 'static');
 const allowedEnvVars = new Set(listProviderEnvVars());
 const DEBUG_TRACE = process.env.FREEWAY_DEBUG_TRACE === '1';
+
+export type RouteChatCompletion = typeof defaultRouteChatCompletion;
+
+export interface CreateServerOptions {
+  routeChatCompletion?: RouteChatCompletion;
+}
 
 function trace(event: string, payload?: Record<string, unknown>) {
   if (!DEBUG_TRACE) return;
@@ -167,7 +173,10 @@ function checkGatewayAuth(req: http.IncomingMessage, res: http.ServerResponse): 
   return true;
 }
 
-const server = http.createServer(async (req, res) => {
+export function createServer(options: CreateServerOptions = {}): http.Server {
+  const routeChatCompletion = options.routeChatCompletion ?? defaultRouteChatCompletion;
+
+  return http.createServer(async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, HEAD, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-api-key');
@@ -552,7 +561,8 @@ const server = http.createServer(async (req, res) => {
     const message = err instanceof Error ? err.message : 'Internal server error';
     sendJSON(res, 500, { error: { message, type: 'internal_error' } });
   }
-});
+  });
+}
 
 export async function startServer() {
   await initializePersistedApiKeys(allowedEnvVars);
@@ -574,6 +584,7 @@ export async function startServer() {
     console.error('[Sync] Background refresh failed:', err instanceof Error ? err.message : String(err));
   });
 
+  const server = createServer();
   server.listen(PORT, () => {
     console.log(`Free-Way running on http://localhost:${PORT}`);
     console.log(`  GET  /`);

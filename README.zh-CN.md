@@ -1,7 +1,7 @@
 <h1 align="center">Free-Way</h1>
 
 <p align="center">
-  <strong>免费使用 Claude Code、Codex、OpenCode、Cline — 一个网关对接 14+ 免费 LLM 提供商。</strong>
+  <strong>用你自己的免费额度 LLM Provider Key，免费接入 Claude Code、Codex、OpenCode、Continue 和 Cline。</strong>
 </p>
 
 <p align="center">
@@ -24,8 +24,8 @@
 </p>
 
 <p align="center">
-  自备 Provider Key。Free-Way 暴露 OpenAI / Anthropic 兼容接口，
-  负责模型发现、请求路由和兼容 Provider 间的自动回退。
+  一个 localhost 网关，兼容 OpenAI / Anthropic 工具。
+  自备 Key，不托管代理，不共享 Key 池。
   你的工具只需要一个 base URL：<code>http://localhost:8787</code>。
 </p>
 

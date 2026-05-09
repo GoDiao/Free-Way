@@ -31,6 +31,7 @@ import { checkAllProvidersHealth, checkProviderHealth } from './health.js';
 import { loadAllModelCaches, refreshAllProviderModels } from './providers/index.js';
 
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 8787;
+const HOST = process.env.HOST || '127.0.0.1';
 const WEB_ROOT = path.resolve(process.cwd(), 'src', 'web');
 const STATIC_ROOT = path.resolve(WEB_ROOT, 'static');
 const allowedEnvVars = new Set(listProviderEnvVars());
@@ -87,6 +88,54 @@ function sendStream(res: http.ServerResponse, status: number) {
 function sendNoContent(res: http.ServerResponse, allow: string) {
   res.writeHead(204, { Allow: allow });
   res.end();
+}
+
+function getHeader(req: http.IncomingMessage, name: string): string {
+  const value = req.headers[name.toLowerCase()];
+  return typeof value === 'string' ? value : '';
+}
+
+function isLocalHostname(hostname: string): boolean {
+  return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1' || hostname === '[::1]';
+}
+
+function isAllowedLocalOrigin(req: http.IncomingMessage): boolean {
+  const origin = getHeader(req, 'origin');
+  if (!origin) return false;
+
+  try {
+    const originUrl = new URL(origin);
+    return (originUrl.protocol === 'http:' || originUrl.protocol === 'https:') && isLocalHostname(originUrl.hostname);
+  } catch {
+    return false;
+  }
+}
+
+function applyCorsHeaders(req: http.IncomingMessage, res: http.ServerResponse): boolean {
+  const origin = getHeader(req, 'origin');
+  res.setHeader('Vary', 'Origin');
+
+  if (!origin) {
+    return true;
+  }
+
+  if (!isAllowedLocalOrigin(req)) {
+    return false;
+  }
+
+  res.setHeader('Access-Control-Allow-Origin', origin);
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, HEAD, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-api-key');
+  return true;
+}
+
+function isManagementRequest(pathname: string, method: string | undefined): boolean {
+  if (pathname === '/api/config/keys' && method === 'POST') return true;
+  if (pathname === '/api/models/refresh' && method === 'POST') return true;
+  if (pathname === '/api/health/check-all' && method === 'POST') return true;
+  if (pathname.startsWith('/api/health/check/') && method === 'POST') return true;
+  if (pathname === '/api/usage' && (method === 'GET' || method === 'DELETE')) return true;
+  return false;
 }
 
 async function readBody(req: http.IncomingMessage): Promise<string> {
@@ -173,16 +222,29 @@ function checkGatewayAuth(req: http.IncomingMessage, res: http.ServerResponse): 
   return true;
 }
 
+function checkManagementAccess(req: http.IncomingMessage, res: http.ServerResponse): boolean {
+  const origin = getHeader(req, 'origin');
+  if (origin && !isAllowedLocalOrigin(req)) {
+    sendJSON(res, 403, {
+      error: {
+        message: 'Management APIs only accept same-machine browser origins.',
+        type: 'forbidden',
+      },
+    });
+    return false;
+  }
+
+  return checkGatewayAuth(req, res);
+}
+
 export function createServer(options: CreateServerOptions = {}): http.Server {
   const routeChatCompletion = options.routeChatCompletion ?? defaultRouteChatCompletion;
 
   return http.createServer(async (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, HEAD, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-api-key');
+  const corsAllowed = applyCorsHeaders(req, res);
 
   if (req.method === 'OPTIONS') {
-    res.writeHead(204);
+    res.writeHead(corsAllowed ? 204 : 403);
     res.end();
     return;
   }
@@ -197,6 +259,10 @@ export function createServer(options: CreateServerOptions = {}): http.Server {
   });
 
   try {
+    if (isManagementRequest(pathname, req.method) && !checkManagementAccess(req, res)) {
+      return;
+    }
+
     if (await serveStatic(pathname, res)) {
       return;
     }
@@ -585,8 +651,8 @@ export async function startServer() {
   });
 
   const server = createServer();
-  server.listen(PORT, () => {
-    console.log(`Free-Way running on http://localhost:${PORT}`);
+  server.listen(PORT, HOST, () => {
+    console.log(`Free-Way running on http://${HOST}:${PORT}`);
     console.log(`  GET  /`);
     console.log(`  GET  /api/catalog`);
     console.log(`  GET  /api/usage`);

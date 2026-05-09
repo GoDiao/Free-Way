@@ -1,7 +1,7 @@
 <h1 align="center">Free-Way</h1>
 
 <p align="center">
-  <strong>免费使用 Claude Code、Codex、OpenCode、Cline — 一个网关对接 14+ 免费 LLM 提供商。</strong>
+  <strong>用你自己的免费额度 LLM Provider Key，免费接入 Claude Code、Codex、OpenCode、Continue 和 Cline。</strong>
 </p>
 
 <p align="center">
@@ -24,8 +24,8 @@
 </p>
 
 <p align="center">
-  自备 Provider Key。Free-Way 暴露 OpenAI / Anthropic 兼容接口，
-  负责模型发现、请求路由和兼容 Provider 间的自动回退。
+  一个 localhost 网关，兼容 OpenAI / Anthropic 工具。
+  自备 Key，不托管代理，不共享 Key 池。
   你的工具只需要一个 base URL：<code>http://localhost:8787</code>。
 </p>
 
@@ -222,6 +222,12 @@ export OPENAI_API_KEY=<你的 FREEWAY_API_KEY>
 1. 运行时通过 UI/API 设置的密钥
 2. 环境变量
 3. 持久化文件 `.freeway/config.json`
+
+### 本地安全模型
+
+Free-Way 默认只监听 `127.0.0.1`。只有在你明确需要局域网访问时，才建议设置 `HOST=0.0.0.0`。
+
+浏览器 CORS 默认只允许本机 localhost 来源。密钥配置、模型刷新、Provider 健康检查、清空 usage 等管理接口会拒绝非本机浏览器来源。如果配置了 `FREEWAY_API_KEY`，这些管理接口和 `/v1/*` 调用都需要提供 `Authorization: Bearer <FREEWAY_API_KEY>` 或 `x-api-key: <FREEWAY_API_KEY>`。
 
 ### 常用环境变量
 

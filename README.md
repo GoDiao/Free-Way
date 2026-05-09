@@ -1,7 +1,7 @@
 <h1 align="center">Free-Way</h1>
 
 <p align="center">
-  <strong>Use Claude Code, Codex, OpenCode, Cline for free — one gateway to 14+ free LLM providers.</strong>
+  <strong>Use Claude Code, Codex, OpenCode, Continue, and Cline for free with your own free-tier LLM provider keys.</strong>
 </p>
 
 <p align="center">
@@ -24,8 +24,8 @@
 </p>
 
 <p align="center">
-  Bring your own provider keys. Free-Way exposes OpenAI- and Anthropic-compatible endpoints,
-  discovers models, routes requests, and falls back across compatible free-tier providers.
+  One localhost gateway for OpenAI- and Anthropic-compatible tools.
+  Bring your own keys. No hosted proxy. No shared key pool.
   Your tools keep one base URL: <code>http://localhost:8787</code>.
 </p>
 
@@ -226,6 +226,12 @@ Effective key precedence is:
 1. Runtime key set via UI/API
 2. Environment variable
 3. Persisted `.freeway/config.json`
+
+### Local security model
+
+Free-Way binds to `127.0.0.1` by default. Set `HOST=0.0.0.0` only if you intentionally want LAN access.
+
+Browser CORS is limited to same-machine localhost origins. Management endpoints such as key configuration, model refresh, provider health checks, and usage clearing reject non-local browser origins. If `FREEWAY_API_KEY` is configured, those management endpoints and `/v1/*` API calls must include `Authorization: Bearer <FREEWAY_API_KEY>` or `x-api-key: <FREEWAY_API_KEY>`.
 
 ### Common environment variables
 

@@ -170,6 +170,8 @@ Free-Way exposes **both** OpenAI and Anthropic compatible endpoints, so most cod
 - [OpenRouter Provider Setup](./docs/providers/openrouter.md)
 - [OpenCode setup guide](./docs/agents/opencode.md)
 - [Aider Integration Guide](./docs/agents/aider.md)
+- [Continue.dev setup guide](./docs/agents/continue.md)
+- [Cline / Roo Code setup guide](./docs/agents/cline-roo-code.md)
 
 ### Claude Code
 

@@ -163,11 +163,12 @@ These are ecosystem references, not hard dependencies. They help guide ongoing p
 
 ## Configure your agent
 
-Free-Way exposes **both** OpenAI and Anthropic compatible endpoints, so most coding agents and LLM clients can connect directly.
+Free-Way exposes **both** OpenAI and Anthropic compatible endpoints. Coding agents and LLM clients work best when they can call those custom base URLs directly from your machine.
 
 > Detailed per-agent setup guides are available in [`docs/agents/`](./docs/agents/).
 
 - [OpenRouter Provider Setup](./docs/providers/openrouter.md)
+- [Local endpoint and remote proxy limitations](./docs/agents/local-endpoints-and-remote-proxies.md)
 - [OpenCode setup guide](./docs/agents/opencode.md)
 - [Aider Integration Guide](./docs/agents/aider.md)
 
@@ -184,9 +185,9 @@ Then run `claude` normally. Free-Way routes Claude Code's Anthropic API calls to
 
 ### Cursor
 
-Cursor may not work with a localhost Free-Way endpoint. Some Cursor API flows are proxied through Cursor's servers before calling the configured API. In that setup, `localhost:8787` refers to Cursor's server environment, not your machine.
+Cursor is a known caveat for localhost endpoints. Some Cursor API flows may proxy requests through Cursor's servers before calling the configured API. In that setup, `localhost:8787` refers to Cursor's server environment, not your machine.
 
-Free-Way works best with clients that call custom OpenAI/Anthropic-compatible base URLs directly from your local machine.
+Free-Way works best with clients that call custom OpenAI/Anthropic-compatible base URLs directly from your local machine. See [Local endpoint and remote proxy limitations](./docs/agents/local-endpoints-and-remote-proxies.md) for the full explanation and a quick compatibility checklist.
 
 ### Continue.dev
 
@@ -215,9 +216,9 @@ export OPENAI_BASE_URL=http://localhost:8787/v1
 export OPENAI_API_KEY=<your FREEWAY_API_KEY>
 ```
 
-### Any other OpenAI/Anthropic client
+### Any other local-capable OpenAI/Anthropic client
 
-Point the base URL to `http://localhost:8787` (Anthropic) or `http://localhost:8787/v1` (OpenAI) and provide your gateway key if configured.
+If the client can call local custom base URLs directly, point it to `http://localhost:8787` (Anthropic) or `http://localhost:8787/v1` (OpenAI) and provide your gateway key if configured.
 
 ### API key precedence
 

@@ -1,5 +1,6 @@
 import http from 'http';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { readFile } from 'fs/promises';
 import type { ChatCompletionRequest } from './types.js';
 import { routeChatCompletion as defaultRouteChatCompletion } from './router.js';
@@ -15,7 +16,7 @@ import { usageTracker } from './usage-tracker.js';
 
 // Configure HTTP proxy for all fetch() calls if HTTP_PROXY is set
 try {
-  // @ts-ignore â€” undici is bundled with Node.js 18+
+  // @ts-ignore â€?undici is bundled with Node.js 18+
   const undici = await import('undici');
   if (process.env.HTTP_PROXY && undici.ProxyAgent && undici.setGlobalDispatcher) {
     undici.setGlobalDispatcher(new undici.ProxyAgent(process.env.HTTP_PROXY));
@@ -32,7 +33,9 @@ import { loadAllModelCaches, refreshAllProviderModels } from './providers/index.
 
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 8787;
 const HOST = process.env.HOST || '127.0.0.1';
-const WEB_ROOT = path.resolve(process.cwd(), 'src', 'web');
+const DIST_ROOT = path.dirname(fileURLToPath(import.meta.url));
+const PACKAGE_ROOT = path.dirname(DIST_ROOT);
+const WEB_ROOT = path.resolve(PACKAGE_ROOT, 'src', 'web');
 const STATIC_ROOT = path.resolve(WEB_ROOT, 'static');
 const allowedEnvVars = new Set(listProviderEnvVars());
 const DEBUG_TRACE = process.env.FREEWAY_DEBUG_TRACE === '1';

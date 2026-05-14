@@ -303,7 +303,8 @@ export function createServer(options: CreateServerOptions = {}): http.Server {
     }
 
     if (pathname === '/api/usage' && req.method === 'DELETE') {
-      sendJSON(res, 200, { records: usageTracker.clear() });
+      const records = await usageTracker.clear();
+      sendJSON(res, 200, { records });
       return;
     }
 

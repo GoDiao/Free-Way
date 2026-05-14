@@ -72,9 +72,11 @@ class UsageTracker {
     return Array.from(this.records.values()).sort((a, b) => b.lastUsedAt - a.lastUsedAt);
   }
 
-  clear(): UsageRecord[] {
+  async clear(): Promise<UsageRecord[]> {
     const records = Array.from(this.records.values());
     this.records.clear();
+    // Persist the empty state so usage does not reappear after a restart.
+    await this.flush();
     return records;
   }
 

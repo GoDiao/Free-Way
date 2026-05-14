@@ -1,9 +1,17 @@
 {
-  "name": "freeway",
+  "name": "@godiao/free-way",
   "version": "0.1.0",
   "description": "OpenAI-compatible router for free LLM APIs",
   "main": "dist/index.js",
+  "bin": {
+    "freeway": "dist/index.js"
+  },
   "type": "module",
+  "files": [
+    "dist",
+    "src/web/static",
+    "src/web/templates"
+  ],
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",

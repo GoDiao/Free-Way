@@ -57,6 +57,19 @@
 ### 1. Install and launch
 
 ```bash
+npx @godiao/free-way
+```
+
+Or install it globally:
+
+```bash
+npm install -g @godiao/free-way
+freeway
+```
+
+For local development:
+
+```bash
 git clone https://github.com/GoDiao/Free-Way.git
 cd Free-Way
 npm install

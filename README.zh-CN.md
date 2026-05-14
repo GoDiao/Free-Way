@@ -57,6 +57,19 @@
 ### 1. 安装并启动
 
 ```bash
+npx @godiao/free-way
+```
+
+也可以全局安装：
+
+```bash
+npm install -g @godiao/free-way
+freeway
+```
+
+本地开发：
+
+```bash
 git clone https://github.com/GoDiao/Free-Way.git
 cd Free-Way
 npm install

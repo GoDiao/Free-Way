@@ -456,6 +456,7 @@ function renderProviders() {
 function renderModels() {
   const search = document.getElementById('model-search').value.trim().toLowerCase();
   const sortKey = document.getElementById('model-sort')?.value || 'name';
+  const providerFilter = document.getElementById('model-provider-filter')?.value || '';
   const list = document.getElementById('models-list');
 
   const filtered = state.models.filter(model => {
@@ -464,7 +465,8 @@ function renderModels() {
       model.modality || '',
       ...model.providers.map(p => p.name),
     ].some(value => value.toLowerCase().includes(search));
-    return matchesSearch;
+    const matchesProvider = !providerFilter || model.providers.some(p => p.name === providerFilter);
+    return matchesSearch && matchesProvider;
   });
 
   const sorted = filtered.slice().sort((a, b) => {
@@ -550,10 +552,26 @@ function renderKeys() {
 
 function renderTestModelOptions() {
   const select = document.getElementById('test-model');
-  select.innerHTML = state.models
+  const providerFilter = document.getElementById('model-provider-filter')?.value || '';
+  const models = providerFilter
+    ? state.models.filter(m => m.providers.some(p => p.name === providerFilter))
+    : state.models;
+  select.innerHTML = models
     .sort((a, b) => a.id.localeCompare(b.id))
     .map(model => `<option value="${model.id}">${model.id}</option>`)
     .join('');
+}
+
+function renderProviderFilter() {
+  const select = document.getElementById('model-provider-filter');
+  if (!select) return;
+  const currentValue = select.value;
+  const providerNames = [...new Set(state.models.flatMap(m => m.providers.map(p => p.name)))].sort();
+  select.innerHTML = '<option value="">All providers</option>' +
+    providerNames.map(name => `<option value="${name}">${name}</option>`).join('');
+  if (providerNames.includes(currentValue)) {
+    select.value = currentValue;
+  }
 }
 
 function toUsageNumber(value) {
@@ -684,6 +702,7 @@ async function loadCatalog() {
   renderProviders();
   renderSyncMeta();
   renderUsage();
+  renderProviderFilter();
   renderModels();
   renderKeys();
   renderTestModelOptions();
@@ -927,6 +946,10 @@ function bindEvents() {
   }
   document.getElementById('model-search').addEventListener('input', renderModels);
   document.getElementById('model-sort').addEventListener('change', renderModels);
+  document.getElementById('model-provider-filter').addEventListener('change', () => {
+    renderModels();
+    renderTestModelOptions();
+  });
   document.getElementById('provider-search').addEventListener('input', renderProviders);
   document.getElementById('provider-state-filter').addEventListener('change', renderProviders);
   document.getElementById('save-keys').addEventListener('click', saveKeys);
